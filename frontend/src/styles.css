@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+@theme {
+  --color-canvas: #f7f0e6;
+  --color-canvas-deep: #efe6d8;
+  --color-surface: rgba(255, 252, 248, 0.86);
+  --color-surface-hover: rgba(255, 250, 245, 0.74);
+  --color-surface-warm: rgba(248, 242, 234, 0.8);
+  --color-surface-cream: rgba(255, 251, 246, 0.72);
+  --color-surface-glass: rgba(255, 250, 244, 0.88);
+  --color-surface-soft: rgba(247, 239, 230, 0.7);
+
+  --color-ink: #2d241d;
+  --color-ink-soft: rgba(45, 36, 29, 0.76);
+  --color-ink-muted: rgba(45, 36, 29, 0.62);
+  --color-ink-faint: rgba(45, 36, 29, 0.46);
+
+  --color-accent: #ff6414;
+  --color-accent-warm: #ff8c3a;
+  --color-accent-soft: #a15f27;
+  --color-accent-glow: rgba(255, 102, 20, 0.24);
+
+  --color-border: rgba(98, 70, 39, 0.09);
+  --color-border-soft: rgba(98, 70, 39, 0.08);
+  --color-border-accent: rgba(161, 95, 39, 0.14);
+  --color-border-accent-strong: rgba(161, 95, 39, 0.2);
+
+  --color-stable: rgba(101, 152, 110, 0.16);
+  --color-stable-ink: #2e6941;
+  --color-stable-border: rgba(101, 152, 110, 0.18);
+  --color-stable-bg: rgba(233, 245, 236, 0.7);
+
+  --color-attention: rgba(255, 151, 88, 0.18);
+  --color-attention-ink: #9e5318;
+  --color-attention-border: rgba(255, 151, 88, 0.18);
+  --color-attention-bg: rgba(255, 230, 210, 0.76);
+
+  --color-critical: rgba(195, 97, 72, 0.14);
+  --color-critical-ink: #9c3f2c;
+  --color-critical-border: rgba(195, 97, 72, 0.18);
+
+  --color-chip: rgba(255, 227, 206, 0.8);
+  --color-chip-ink: #9a531d;
+
+  --color-badge-bg: rgba(116, 101, 85, 0.08);
+  --color-badge-ink: #695747;
+
+  --font-display: "Iowan Old Style", "Source Han Serif SC", "Songti SC", serif;
+  --font-body: "PingFang SC", "Noto Sans SC", "Helvetica Neue", sans-serif;
+
+  --radius-panel: 28px;
+  --radius-card: 22px;
+  --radius-pill: 999px;
+  --radius-chip: 20px;
+
+  --shadow-panel: 0 22px 48px rgba(105, 72, 35, 0.08);
+  --shadow-panel-hover: 0 22px 56px rgba(105, 72, 35, 0.1);
+  --shadow-accent: 0 14px 30px rgba(255, 102, 20, 0.24);
+  --shadow-active: 0 18px 42px rgba(108, 70, 28, 0.08);
+
+  --animate-page-in: page-in 320ms ease;
+  --animate-pulse: pulse 1.9s ease-out infinite;
+  --animate-step: current-step 2.1s ease-in-out infinite;
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 109, 26, 0.34);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 109, 26, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 109, 26, 0);
+  }
+}
+
+@keyframes current-step {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: var(--font-body);
+    color: var(--color-ink);
+    background:
+      radial-gradient(circle at top left, rgba(255, 123, 31, 0.16), transparent 28%),
+      linear-gradient(180deg, var(--color-canvas) 0%, #f3ebdf 42%, var(--color-canvas-deep) 100%);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.5;
+    font-weight: 400;
+    color-scheme: light;
+  }
+
+  body {
+    min-height: 100vh;
+    margin: 0;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  button {
+    border: 0;
+    background: none;
+    padding: 0;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 1ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 1ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

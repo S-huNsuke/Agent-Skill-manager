@@ -1,0 +1,15 @@
+node_modules/
+.venv/
+.pytest_cache/
+.gocache/
+build/bin/
+dist/
+.DS_Store
+.git/
+.github/
+docs/
+test-screenshots/
+*.md
+LICENSE
+.gitignore
+.editorconfig

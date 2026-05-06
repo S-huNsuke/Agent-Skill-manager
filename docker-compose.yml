@@ -1,0 +1,18 @@
+services:
+  agent-skills-manager:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agent-skills-manager
+    ports:
+      - "8080:8080"
+    volumes:
+      - asm-data:/app/data
+      - asm-cache:/root/Library/Application\ Support/agent-skills-manager
+    environment:
+      - TZ=Asia/Shanghai
+    restart: unless-stopped
+
+volumes:
+  asm-data:
+  asm-cache:
