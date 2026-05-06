@@ -32,15 +32,30 @@
 
 ## 🤖 支持的代理
 
-| 代理 | 适配器 | 状态 |
-|:----:|:------:|:----:|
-| <img src="https://avatars.githubusercontent.com/anthropics" width="24" height="24" alt="Anthropic"> **Claude Code** | `claudecode` | ✅ 已支持 |
-| <img src="https://avatars.githubusercontent.com/openai" width="24" height="24" alt="OpenAI"> **Codex** | `codex` | ✅ 已支持 |
-| <img src="https://avatars.githubusercontent.com/bytedance" width="24" height="24" alt="ByteDance"> **Trae** | `trae` | ✅ 已支持 |
-| <img src="https://avatars.githubusercontent.com/bytedance" width="24" height="24" alt="ByteDance"> **Trae CN** | `traecn` | ✅ 已支持 |
-| <img src="https://avatars.githubusercontent.com/google-gemini" width="24" height="24" alt="Google Gemini"> **Gemini CLI** | `geminicli` | ✅ 已支持 |
-| <img src="https://avatars.githubusercontent.com/openclaw" width="24" height="24" alt="OpenClaw"> **OpenClaw** | `openclaw` | ✅ 已支持 |
-| <img src="https://avatars.githubusercontent.com/nousresearch" width="24" height="24" alt="Nous Research"> **Hermes** | `hermes` | ✅ 已支持 |
+<p align="center">
+  <a href="https://github.com/anthropics/claude-code" target="_blank">
+    <img src="https://avatars.githubusercontent.com/anthropics" alt="Claude Code" height="60" />
+  </a><!--
+  --><a href="https://github.com/openai/codex" target="_blank">
+    <img src="https://avatars.githubusercontent.com/openai" alt="Codex" height="60" />
+  </a><!--
+  --><a href="https://www.trae.ai/" target="_blank">
+    <img src="https://avatars.githubusercontent.com/bytedance" alt="Trae" height="60" />
+  </a><!--
+  --><a href="https://github.com/google-gemini/gemini-cli" target="_blank">
+    <img src="https://avatars.githubusercontent.com/google-gemini" alt="Gemini CLI" height="60" />
+  </a><!--
+  --><a href="https://github.com/openclaw" target="_blank">
+    <img src="https://avatars.githubusercontent.com/openclaw" alt="OpenClaw" height="60" />
+  </a><!--
+  --><a href="https://github.com/nousresearch" target="_blank">
+    <img src="https://avatars.githubusercontent.com/nousresearch" alt="Hermes" height="60" />
+  </a>
+</p>
+
+<p align="center">
+  <em>Claude Code · Codex · Trae / Trae CN · Gemini CLI · OpenClaw · Hermes</em>
+</p>
 
 ---
 
