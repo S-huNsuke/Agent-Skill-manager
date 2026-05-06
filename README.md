@@ -34,22 +34,22 @@
 
 <p align="center">
   <a href="https://github.com/anthropics/claude-code" target="_blank">
-    <img src="https://avatars.githubusercontent.com/anthropics" alt="Claude Code" height="60" />
+    <img src="/docs/images/claude-code.png" alt="Claude Code" height="60" />
   </a><!--
   --><a href="https://github.com/openai/codex" target="_blank">
-    <img src="https://avatars.githubusercontent.com/openai" alt="Codex" height="60" />
+    <img src="/docs/images/codex.png" alt="Codex" height="60" />
   </a><!--
   --><a href="https://www.trae.ai/" target="_blank">
-    <img src="https://avatars.githubusercontent.com/bytedance" alt="Trae" height="60" />
+    <img src="/docs/images/trae.png" alt="Trae" height="60" />
   </a><!--
   --><a href="https://github.com/google-gemini/gemini-cli" target="_blank">
-    <img src="https://avatars.githubusercontent.com/google-gemini" alt="Gemini CLI" height="60" />
+    <img src="/docs/images/gemini-cli.png" alt="Gemini CLI" height="60" />
   </a><!--
   --><a href="https://github.com/openclaw" target="_blank">
-    <img src="https://avatars.githubusercontent.com/openclaw" alt="OpenClaw" height="60" />
+    <img src="/docs/images/openclaw.png" alt="OpenClaw" height="60" />
   </a><!--
   --><a href="https://github.com/nousresearch" target="_blank">
-    <img src="https://avatars.githubusercontent.com/nousresearch" alt="Hermes" height="60" />
+    <img src="/docs/images/hermes.png" alt="Hermes" height="60" />
   </a>
 </p>
 
