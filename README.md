@@ -1,226 +1,226 @@
 <div align="center">
 
-![Agent Skills Manager](/build/appicon.png)
+<img src="/build/appicon.png" width="120" height="120" alt="Agent Skills Manager">
 
 # Agent Skills Manager
 
-⚡ **One-Stop Desktop Manager for AI Agent Skills — Install, Update, and Orchestrate with Ease**
+⚡ **一站式 AI 代理技能桌面管理器 — 轻松安装、更新与编排**
 
 <p align="center">
-  <a href="./README.zh_CN.md">简体中文</a> |
-  <strong>English</strong>
+  <strong>简体中文</strong> |
+  <a href="./README.en.md">English</a>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/license/caojun/agent-skills-manager?color=brightgreen" alt="license">
-  <img src="https://img.shields.io/github/v/release/caojun/agent-skills-manager?color=brightgreen&include_prereleases" alt="release">
+  <img src="https://img.shields.io/github/license/S-huNsuke/Agent-Skill-manager?color=brightgreen" alt="license">
+  <img src="https://img.shields.io/github/v/release/S-huNsuke/Agent-Skill-manager?color=brightgreen&include_prereleases" alt="release">
   <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux-blue" alt="platform">
   <img src="https://img.shields.io/badge/Go-1.23+-00ADD8" alt="go">
   <img src="https://img.shields.io/badge/React-19+-61DAFB" alt="react">
   <img src="https://img.shields.io/badge/Wails-v2-orange" alt="wails">
-  <img src="https://img.shields.io/badge/Docker-supported-2496ED" alt="docker">
+  <img src="https://img.shields.io/badge/Docker-支持-2496ED" alt="docker">
 </p>
 
 <p align="center">
-  <a href="#-quick-start">Quick Start</a> •
-  <a href="#-key-features">Key Features</a> •
-  <a href="#-architecture">Architecture</a> •
-  <a href="#-supported-agents">Supported Agents</a> •
-  <a href="#-development">Development</a>
+  <a href="#-快速开始">快速开始</a> •
+  <a href="#-核心功能">核心功能</a> •
+  <a href="#-架构设计">架构设计</a> •
+  <a href="#-支持的代理">支持的代理</a> •
+  <a href="#-开发指南">开发指南</a>
 </p>
 
 </div>
 
 ---
 
-## 📸 Screenshots
+## 📸 应用截图
 
 <div align="center">
-  <img src="/test-screenshots/route-home.png" width="45%" alt="Dashboard">
-  <img src="/test-screenshots/route-agents.png" width="45%" alt="Agents">
-  <img src="/test-screenshots/route-skills.png" width="45%" alt="Skills">
-  <img src="/test-screenshots/route-store.png" width="45%" alt="Store">
-  <img src="/test-screenshots/route-projects.png" width="45%" alt="Projects">
-  <img src="/test-screenshots/route-assistant.png" width="45%" alt="AI Assistant">
+  <img src="/test-screenshots/route-home.png" width="45%" alt="仪表盘">
+  <img src="/test-screenshots/route-agents.png" width="45%" alt="代理管理">
+  <img src="/test-screenshots/route-skills.png" width="45%" alt="技能管理">
+  <img src="/test-screenshots/route-store.png" width="45%" alt="技能商店">
+  <img src="/test-screenshots/route-projects.png" width="45%" alt="项目管理">
+  <img src="/test-screenshots/route-assistant.png" width="45%" alt="AI 助手">
 </div>
 
 ---
 
-## 📝 Project Description
+## 📝 项目简介
 
-Agent Skills Manager is a native macOS desktop application that provides a unified management interface for AI agent skills. It supports discovering locally installed AI agents, browsing and installing skills from remote catalogs, binding skills to projects, and leveraging AI assistants for automated skill planning and deployment.
+Agent Skills Manager 是一款原生 macOS 桌面应用，为 AI 代理技能提供统一的管理界面。支持自动发现本地已安装的 AI 代理、浏览和安装远程目录中的技能、将技能绑定到项目，以及利用 AI 助手自动规划技能部署。
 
-Built with **Wails v2** (Go + React/TypeScript), it delivers native performance with a modern web-based UI.
-
----
-
-## ✨ Key Features
-
-### 🤖 Agent Management
-| Feature | Description |
-|---------|-------------|
-| 🔍 Auto Discovery | Automatically detects locally installed AI agents (Claude Code, Codex, Trae, etc.) |
-| 📊 Health Monitoring | Real-time health status checks for each agent |
-| 🔧 One-Click Repair | Fix missing skill directories and broken installations |
-| 📋 Batch Operations | Batch update or uninstall skills across agents |
-
-### 🏪 Skill Store
-| Feature | Description |
-|---------|-------------|
-| 🌐 Remote Catalogs | Browse skills from GitHub-based catalogs (Anthropic, ComposioHQ, Vercel) |
-| 🔄 Auto Sync | Scheduled synchronization of skill catalogs |
-| 📦 Local Cache | Downloaded skills are cached locally for offline installation |
-| 🔍 Search & Filter | Search by name, description, source, and agent compatibility |
-
-### 📂 Project Management
-| Feature | Description |
-|---------|-------------|
-| 🗂️ Project Binding | Bind agents and skill groups to specific projects |
-| ⚖️ Skill Reconciliation | Detect missing/outdated skills and reconcile with one click |
-| 📁 Auto Scan | Automatically discover local Git projects |
-
-### 🧠 AI Assistant
-| Feature | Description |
-|---------|-------------|
-| 💬 Conversational UI | Describe your goal, AI plans the skill installation steps |
-| 🔄 Multi-Phase Workflow | Planning → Resolving → Executing → Verifying → Reporting |
-| 🤖 Multi-Provider | Supports OpenAI, Anthropic, or local fallback mode |
-| 📝 Task History | Full history of AI-assisted tasks |
-
-### ⚙️ Settings & Automation
-| Feature | Description |
-|---------|-------------|
-| 🎨 Theme & Language | Light/Dark/System theme, Chinese/English interface |
-| ⏰ Scheduled Tasks | Auto-sync catalogs, health checks on configurable schedules |
-| 🔐 AI Configuration | Configure LLM provider, model, API key, and custom base URL |
-| 🩺 Diagnostics | Built-in Wails binding diagnostics and system health dashboard |
+基于 **Wails v2**（Go + React/TypeScript）构建，兼具原生性能和现代化 Web UI。
 
 ---
 
-## 🏗️ Architecture
+## ✨ 核心功能
+
+### 🤖 代理管理
+| 功能 | 描述 |
+|------|------|
+| 🔍 自动发现 | 自动检测本地已安装的 AI 代理（Claude Code、Codex、Trae 等） |
+| 📊 健康监控 | 实时检查每个代理的健康状态 |
+| 🔧 一键修复 | 修复缺失的技能目录和损坏的安装 |
+| 📋 批量操作 | 批量更新或卸载跨代理的技能 |
+
+### 🏪 技能商店
+| 功能 | 描述 |
+|------|------|
+| 🌐 远程目录 | 浏览来自 GitHub 的技能目录（Anthropic、ComposioHQ、Vercel） |
+| 🔄 自动同步 | 定时同步技能目录 |
+| 📦 本地缓存 | 已下载的技能缓存在本地，支持离线安装 |
+| 🔍 搜索过滤 | 按名称、描述、来源和代理兼容性搜索 |
+
+### 📂 项目管理
+| 功能 | 描述 |
+|------|------|
+| 🗂️ 项目绑定 | 将代理和技能组绑定到特定项目 |
+| ⚖️ 技能协调 | 检测缺失/过时的技能，一键协调 |
+| 📁 自动扫描 | 自动发现本地 Git 项目 |
+
+### 🧠 AI 助手
+| 功能 | 描述 |
+|------|------|
+| 💬 对话式交互 | 描述你的目标，AI 自动规划技能安装步骤 |
+| 🔄 多阶段工作流 | 规划 → 解析 → 执行 → 验证 → 报告 |
+| 🤖 多供应商 | 支持 OpenAI、Anthropic 或本地回退模式 |
+| 📝 任务历史 | 完整的 AI 辅助任务历史记录 |
+
+### ⚙️ 设置与自动化
+| 功能 | 描述 |
+|------|------|
+| 🎨 主题与语言 | 亮色/暗色/跟随系统主题，中文/英文界面 |
+| ⏰ 定时任务 | 可配置的自动同步目录、健康检查计划 |
+| 🔐 AI 配置 | 配置 LLM 供应商、模型、API 密钥和自定义 Base URL |
+| 🩺 诊断工具 | 内置 Wails 绑定诊断和系统健康仪表盘 |
+
+---
+
+## 🏗️ 架构设计
 
 ```
 ┌─────────────────────────────────────────────────┐
-│                   Frontend (React)               │
+│                   前端 (React)                    │
 │  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐  │
-│  │ Home │ │Agents│ │Skills│ │Store │ │Proj  │  │
+│  │ 首页 │ │ 代理 │ │ 技能 │ │ 商店 │ │ 项目 │  │
 │  └──┬───┘ └──┬───┘ └──┬───┘ └──┬───┘ └──┬───┘  │
 │     └────────┴────────┴────────┴────────┘       │
-│                    │ Wails Bindings               │
+│                    │ Wails 绑定                   │
 ├────────────────────┼────────────────────────────┤
 │                    ▼                              │
-│              Go Backend (App)                     │
+│              Go 后端 (App)                        │
 │  ┌──────────┐ ┌──────────┐ ┌──────────────────┐ │
-│  │ Registry │ │ Catalog  │ │   AI Bridge      │ │
-│  │ (Agents) │ │ (Skills) │ │ (Python Worker)  │ │
+│  │ 注册表   │ │  目录    │ │   AI 桥接        │ │
+│  │ (代理)   │ │ (技能)   │ │ (Python Worker)  │ │
 │  └────┬─────┘ └────┬─────┘ └────────┬─────────┘ │
 │       │             │                │            │
 │  ┌────┴─────────────┴────────────────┴─────────┐ │
-│  │           SQLite Persistence                 │ │
+│  │           SQLite 持久化层                    │ │
 │  └─────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────┘
 ```
 
-### Tech Stack
+### 技术栈
 
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | React 19, TypeScript, Tailwind CSS, Vite |
-| **Backend** | Go 1.23+, Wails v2 |
-| **Database** | SQLite (CGO), migrations built-in |
-| **AI Bridge** | Python Worker (subprocess), supports OpenAI/Anthropic/local |
-| **Package Manager** | pnpm (frontend), Go Modules (backend) |
-
----
-
-## 🤖 Supported Agents
-
-| Agent | Adapter | Status |
-|-------|---------|--------|
-| 🟦 Claude Code | `claudecode` | ✅ Supported |
-| 🟩 Codex (OpenAI) | `codex` | ✅ Supported |
-| 🟪 Trae | `trae` | ✅ Supported |
-| 🟪 Trae CN | `traecn` | ✅ Supported |
-| 🟡 Gemini CLI | `geminicli` | ✅ Supported |
-| 🔴 OpenClaw | `openclaw` | ✅ Supported |
-| 🟠 Hermes | `hermes` | ✅ Supported |
-| 🔵 AIO Coding Hub | `aiocodinghub` | ✅ Supported |
+| 层级 | 技术 |
+|------|------|
+| **前端** | React 19, TypeScript, Tailwind CSS, Vite |
+| **后端** | Go 1.23+, Wails v2 |
+| **数据库** | SQLite (CGO)，内置迁移 |
+| **AI 桥接** | Python Worker（子进程），支持 OpenAI/Anthropic/本地模式 |
+| **包管理** | pnpm（前端），Go Modules（后端） |
 
 ---
 
-## 🚀 Quick Start
+## 🤖 支持的代理
 
-### Prerequisites
+| 代理 | 适配器 | 状态 |
+|------|--------|------|
+| 🟦 Claude Code | `claudecode` | ✅ 已支持 |
+| 🟩 Codex (OpenAI) | `codex` | ✅ 已支持 |
+| 🟪 Trae | `trae` | ✅ 已支持 |
+| 🟪 Trae CN | `traecn` | ✅ 已支持 |
+| 🟡 Gemini CLI | `geminicli` | ✅ 已支持 |
+| 🔴 OpenClaw | `openclaw` | ✅ 已支持 |
+| 🟠 Hermes | `hermes` | ✅ 已支持 |
+| 🔵 AIO Coding Hub | `aiocodinghub` | ✅ 已支持 |
 
-| Requirement | Version |
-|-------------|---------|
+---
+
+## 🚀 快速开始
+
+### 环境要求
+
+| 依赖 | 版本 |
+|------|------|
 | **Go** | ≥ 1.23 |
-| **Node.js** | ≥ 20 (managed via fnm) |
+| **Node.js** | ≥ 20（通过 fnm 管理） |
 | **pnpm** | ≥ 9 |
-| **Wails CLI** | v2 latest |
-| **Xcode Command Line Tools** | Latest |
-| **Python 3** | ≥ 3.10 (optional, for AI features) |
+| **Wails CLI** | v2 最新版 |
+| **Xcode 命令行工具** | 最新版 |
+| **Python 3** | ≥ 3.10（可选，AI 功能需要） |
 
-### Install Wails CLI
+### 安装 Wails CLI
 
 ```bash
 go install github.com/wailsapp/wails/v2/cmd/wails@latest
 ```
 
-### Development Mode
+### 开发模式
 
 ```bash
-# Clone the repository
+# 克隆仓库
 git clone https://github.com/S-huNsuke/Agent-Skill-manager.git
 cd Agent-Skill-manager
 
-# Install frontend dependencies
+# 安装前端依赖
 cd frontend && pnpm install && cd ..
 
-# Run in development mode
+# 开发模式运行
 wails dev
 ```
 
-### Production Build
+### 生产构建
 
 ```bash
-# Build using the build script
+# 使用构建脚本
 bash scripts/build.sh
 
-# Or use Wails CLI
+# 或使用 Wails CLI
 wails build -clean
 
-# The .app bundle will be at:
+# 构建产物位于：
 # build/bin/agent-skills-manager.app
 ```
 
-### 🐳 Docker Deployment
+### 🐳 Docker 部署
 
 <details>
-<summary><strong>Using Docker Compose (Recommended)</strong></summary>
+<summary><strong>使用 Docker Compose（推荐）</strong></summary>
 
 ```bash
-# Clone the repository
+# 克隆仓库
 git clone https://github.com/S-huNsuke/Agent-Skill-manager.git
 cd Agent-Skill-manager
 
-# Start the service
+# 启动服务
 docker-compose up -d
 
-# View logs
+# 查看日志
 docker-compose logs -f
 ```
 
 </details>
 
 <details>
-<summary><strong>Using Docker Commands</strong></summary>
+<summary><strong>使用 Docker 命令</strong></summary>
 
 ```bash
-# Build the image
+# 构建镜像
 docker build -t agent-skills-manager .
 
-# Run the container
+# 运行容器
 docker run -d --name agent-skills-manager \
   -p 8080:8080 \
   -e TZ=Asia/Shanghai \
@@ -230,107 +230,107 @@ docker run -d --name agent-skills-manager \
 
 </details>
 
-> **💡 Note:** The Docker image is built on a Linux base with GTK3 and WebKit2 support. Data is persisted in the `asm-data` volume. Visit `http://localhost:8080` after the container starts.
+> **💡 提示：** Docker 镜像基于 Linux 构建，包含 GTK3 和 WebKit2 支持。数据持久化在 `asm-data` 卷中。容器启动后访问 `http://localhost:8080` 即可使用。
 
 ---
 
-## 📁 Project Structure
+## 📁 项目结构
 
 ```
 agent-skills-manager/
-├── build/                          # Build assets and output
-│   ├── appicon.png                 # Application icon (1024x1024)
-│   └── bin/                        # Build output
+├── build/                          # 构建资源和输出
+│   ├── appicon.png                 # 应用图标 (1024x1024)
+│   └── bin/                        # 构建输出
 ├── cmd/
-│   └── agent-skills-manager/       # Application entry point
-├── docs/                           # Documentation
-├── frontend/                       # React frontend
+│   └── agent-skills-manager/       # 应用入口
+├── docs/                           # 文档
+├── frontend/                       # React 前端
 │   ├── src/
-│   │   ├── components/             # Shared UI components
-│   │   ├── features/               # Feature modules
-│   │   │   ├── agents/             # Agent management page
-│   │   │   ├── assistant/          # AI assistant panel & page
-│   │   │   ├── home/               # Dashboard / home page
-│   │   │   ├── projects/           # Project management page
-│   │   │   ├── settings/           # Settings page
-│   │   │   ├── skills/             # Skills management page
-│   │   │   └── store/              # Skill store page
-│   │   ├── lib/                    # API layer, types, utilities
-│   │   └── routes/                 # React Router configuration
+│   │   ├── components/             # 共享 UI 组件
+│   │   ├── features/               # 功能模块
+│   │   │   ├── agents/             # 代理管理页
+│   │   │   ├── assistant/          # AI 助手面板和页面
+│   │   │   ├── home/               # 仪表盘/首页
+│   │   │   ├── projects/           # 项目管理页
+│   │   │   ├── settings/           # 设置页
+│   │   │   ├── skills/             # 技能管理页
+│   │   │   └── store/              # 技能商店页
+│   │   ├── lib/                    # API 层、类型、工具
+│   │   └── routes/                 # React Router 配置
 │   └── package.json
 ├── internal/
-│   ├── agents/                     # Agent adapters (8 adapters)
-│   ├── ai/                         # AI Bridge (Python Worker)
-│   ├── app/                        # Core application logic
-│   │   ├── app.go                  # App struct, initialization
-│   │   ├── bindings.go             # Wails-bound methods
-│   │   ├── converters.go           # Domain ↔ ViewModel conversion
-│   │   ├── scheduler.go            # Cron-like task scheduler
-│   │   └── viewmodels.go           # View model type definitions
-│   ├── catalog/                    # Catalog sync & parsing
-│   ├── domain/                     # Domain types
-│   ├── installer/                  # Skill installation logic
-│   ├── projects/                   # Project scanning
-│   ├── reconcile/                  # Skill reconciliation
-│   ├── skillgroups/                # Skill group management
+│   ├── agents/                     # 代理适配器（8 个）
+│   ├── ai/                         # AI 桥接（Python Worker）
+│   ├── app/                        # 核心应用逻辑
+│   │   ├── app.go                  # App 结构体、初始化
+│   │   ├── bindings.go             # Wails 绑定方法
+│   │   ├── converters.go           # 领域 ↔ 视图模型转换
+│   │   ├── scheduler.go            # 定时任务调度器
+│   │   └── viewmodels.go           # 视图模型类型定义
+│   ├── catalog/                    # 目录同步与解析
+│   ├── domain/                     # 领域类型
+│   ├── installer/                  # 技能安装逻辑
+│   ├── projects/                   # 项目扫描
+│   ├── reconcile/                  # 技能协调
+│   ├── skillgroups/                # 技能组管理
 │   ├── storage/
-│   │   └── sqlite/                 # SQLite repositories & migrations
-│   └── tasks/                      # Task history management
+│   │   └── sqlite/                 # SQLite 仓库和迁移
+│   └── tasks/                      # 任务历史管理
 ├── scripts/
-│   └── build.sh                    # Production build script
-├── test-screenshots/               # UI screenshots
-└── wails.json                      # Wails configuration
+│   └── build.sh                    # 生产构建脚本
+├── test-screenshots/               # UI 截图
+└── wails.json                      # Wails 配置
 ```
 
 ---
 
-## 🔧 Development
+## 🔧 开发指南
 
-### Frontend Development
+### 前端开发
 
 ```bash
 cd frontend
 pnpm install
-pnpm dev          # Start Vite dev server
-pnpm build        # Production build
-pnpm exec tsc --noEmit  # Type check
+pnpm dev                # 启动 Vite 开发服务器
+pnpm build              # 生产构建
+pnpm exec tsc --noEmit  # 类型检查
 ```
 
-### Backend Development
+### 后端开发
 
 ```bash
-go vet ./...              # Static analysis
-go test ./... -count=1    # Run all tests
-go build ./cmd/agent-skills-manager/  # Build binary
+go vet ./...              # 静态分析
+go test ./... -count=1    # 运行所有测试
+go build ./cmd/agent-skills-manager/  # 构建二进制
 ```
 
-### Adding a New Agent Adapter
+### 添加新的代理适配器
 
-1. Create a new package under `internal/agents/<agent-name>/`
-2. Implement the `agents.Adapter` interface
-3. Register the adapter in `internal/app/app.go` → `New()`
+1. 在 `internal/agents/<agent-name>/` 下创建新包
+2. 实现 `agents.Adapter` 接口
+3. 在 `internal/app/app.go` → `New()` 中注册适配器
 
-### Adding a New Feature
+### 添加新功能
 
-1. Define view models in `internal/app/viewmodels.go`
-2. Implement the Wails-bound method in `internal/app/bindings.go`
-3. Add the API method in `frontend/src/lib/api.ts`
-4. Create the UI page in `frontend/src/features/<feature>/`
+1. 在 `internal/app/viewmodels.go` 中定义视图模型
+2. 在 `internal/app/bindings.go` 中实现 Wails 绑定方法
+3. 在 `frontend/src/lib/api.ts` 中添加 API 方法
+4. 在 `frontend/src/features/<feature>/` 中创建 UI 页面
 
 ---
 
-## 📜 License
+## 📜 许可证
 
-This project is licensed under the [MIT License](./LICENSE).
+本项目基于 [MIT 许可证](./LICENSE) 开源。
 
 ---
 
 <div align="center">
 
-### 💖 Thank you for using Agent Skills Manager
+### 💖 感谢使用 Agent Skills Manager
 
-If this project is helpful to you, please give us a ⭐️ Star!
+如果这个项目对你有帮助，请给我们一个 ⭐️ Star！
 
-<sub>Built with ❤️ using Wails v2 + Go + React</sub>
+<sub>使用 Wails v2 + Go + React 用 ❤️ 构建</sub>
 
 </div>

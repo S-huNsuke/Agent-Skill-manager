@@ -52,7 +52,6 @@ npm-debug.log*
 pnpm-debug.log*
 
 # Test
-test-screenshots/
 
 # Data
 *.db
