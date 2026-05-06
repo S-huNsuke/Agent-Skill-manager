@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="/build/appicon.png" width="120" height="120" alt="Agent Skills Manager">
-
 # Agent Skills Manager
 
 ⚡ **一站式 AI 代理技能桌面管理器 — 轻松安装、更新与编排**
@@ -25,7 +23,6 @@
   <a href="#-快速开始">快速开始</a> •
   <a href="#-核心功能">核心功能</a> •
   <a href="#-架构设计">架构设计</a> •
-  <a href="#-支持的代理">支持的代理</a> •
   <a href="#-开发指南">开发指南</a>
 </p>
 
@@ -33,16 +30,17 @@
 
 ---
 
-## 📸 应用截图
+## 🤖 支持的代理
 
-<div align="center">
-  <img src="/test-screenshots/route-home.png" width="45%" alt="仪表盘">
-  <img src="/test-screenshots/route-agents.png" width="45%" alt="代理管理">
-  <img src="/test-screenshots/route-skills.png" width="45%" alt="技能管理">
-  <img src="/test-screenshots/route-store.png" width="45%" alt="技能商店">
-  <img src="/test-screenshots/route-projects.png" width="45%" alt="项目管理">
-  <img src="/test-screenshots/route-assistant.png" width="45%" alt="AI 助手">
-</div>
+| 代理 | 适配器 | 状态 |
+|:----:|:------:|:----:|
+| <img src="https://avatars.githubusercontent.com/anthropics" width="24" height="24" alt="Anthropic"> **Claude Code** | `claudecode` | ✅ 已支持 |
+| <img src="https://avatars.githubusercontent.com/openai" width="24" height="24" alt="OpenAI"> **Codex** | `codex` | ✅ 已支持 |
+| <img src="https://avatars.githubusercontent.com/bytedance" width="24" height="24" alt="ByteDance"> **Trae** | `trae` | ✅ 已支持 |
+| <img src="https://avatars.githubusercontent.com/bytedance" width="24" height="24" alt="ByteDance"> **Trae CN** | `traecn` | ✅ 已支持 |
+| <img src="https://avatars.githubusercontent.com/google-gemini" width="24" height="24" alt="Google Gemini"> **Gemini CLI** | `geminicli` | ✅ 已支持 |
+| <img src="https://avatars.githubusercontent.com/openclaw" width="24" height="24" alt="OpenClaw"> **OpenClaw** | `openclaw` | ✅ 已支持 |
+| <img src="https://avatars.githubusercontent.com/nousresearch" width="24" height="24" alt="Nous Research"> **Hermes** | `hermes` | ✅ 已支持 |
 
 ---
 
@@ -130,21 +128,6 @@ Agent Skills Manager 是一款原生 macOS 桌面应用，为 AI 代理技能提
 | **数据库** | SQLite (CGO)，内置迁移 |
 | **AI 桥接** | Python Worker（子进程），支持 OpenAI/Anthropic/本地模式 |
 | **包管理** | pnpm（前端），Go Modules（后端） |
-
----
-
-## 🤖 支持的代理
-
-| 代理 | 适配器 | 状态 |
-|------|--------|------|
-| 🟦 Claude Code | `claudecode` | ✅ 已支持 |
-| 🟩 Codex (OpenAI) | `codex` | ✅ 已支持 |
-| 🟪 Trae | `trae` | ✅ 已支持 |
-| 🟪 Trae CN | `traecn` | ✅ 已支持 |
-| 🟡 Gemini CLI | `geminicli` | ✅ 已支持 |
-| 🔴 OpenClaw | `openclaw` | ✅ 已支持 |
-| 🟠 Hermes | `hermes` | ✅ 已支持 |
-| 🔵 AIO Coding Hub | `aiocodinghub` | ✅ 已支持 |
 
 ---
 
@@ -259,7 +242,7 @@ agent-skills-manager/
 │   │   └── routes/                 # React Router 配置
 │   └── package.json
 ├── internal/
-│   ├── agents/                     # 代理适配器（8 个）
+│   ├── agents/                     # 代理适配器（7 个）
 │   ├── ai/                         # AI 桥接（Python Worker）
 │   ├── app/                        # 核心应用逻辑
 │   │   ├── app.go                  # App 结构体、初始化
@@ -278,7 +261,6 @@ agent-skills-manager/
 │   └── tasks/                      # 任务历史管理
 ├── scripts/
 │   └── build.sh                    # 生产构建脚本
-├── test-screenshots/               # UI 截图
 └── wails.json                      # Wails 配置
 ```
 

@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="/build/appicon.png" width="120" height="120" alt="Agent Skills Manager">
-
 # Agent Skills Manager
 
 ⚡ **One-Stop Desktop Manager for AI Agent Skills — Install, Update, and Orchestrate with Ease**
@@ -25,7 +23,6 @@
   <a href="#-quick-start">Quick Start</a> •
   <a href="#-key-features">Key Features</a> •
   <a href="#-architecture">Architecture</a> •
-  <a href="#-supported-agents">Supported Agents</a> •
   <a href="#-development">Development</a>
 </p>
 
@@ -33,16 +30,17 @@
 
 ---
 
-## 📸 Screenshots
+## 🤖 Supported Agents
 
-<div align="center">
-  <img src="/test-screenshots/route-home.png" width="45%" alt="Dashboard">
-  <img src="/test-screenshots/route-agents.png" width="45%" alt="Agents">
-  <img src="/test-screenshots/route-skills.png" width="45%" alt="Skills">
-  <img src="/test-screenshots/route-store.png" width="45%" alt="Store">
-  <img src="/test-screenshots/route-projects.png" width="45%" alt="Projects">
-  <img src="/test-screenshots/route-assistant.png" width="45%" alt="AI Assistant">
-</div>
+| Agent | Adapter | Status |
+|:-----:|:-------:|:------:|
+| <img src="https://avatars.githubusercontent.com/anthropics" width="24" height="24" alt="Anthropic"> **Claude Code** | `claudecode` | ✅ Supported |
+| <img src="https://avatars.githubusercontent.com/openai" width="24" height="24" alt="OpenAI"> **Codex** | `codex` | ✅ Supported |
+| <img src="https://avatars.githubusercontent.com/bytedance" width="24" height="24" alt="ByteDance"> **Trae** | `trae` | ✅ Supported |
+| <img src="https://avatars.githubusercontent.com/bytedance" width="24" height="24" alt="ByteDance"> **Trae CN** | `traecn` | ✅ Supported |
+| <img src="https://avatars.githubusercontent.com/google-gemini" width="24" height="24" alt="Google Gemini"> **Gemini CLI** | `geminicli` | ✅ Supported |
+| <img src="https://avatars.githubusercontent.com/openclaw" width="24" height="24" alt="OpenClaw"> **OpenClaw** | `openclaw` | ✅ Supported |
+| <img src="https://avatars.githubusercontent.com/nousresearch" width="24" height="24" alt="Nous Research"> **Hermes** | `hermes` | ✅ Supported |
 
 ---
 
@@ -130,21 +128,6 @@ Built with **Wails v2** (Go + React/TypeScript), it delivers native performance 
 | **Database** | SQLite (CGO), migrations built-in |
 | **AI Bridge** | Python Worker (subprocess), supports OpenAI/Anthropic/local |
 | **Package Manager** | pnpm (frontend), Go Modules (backend) |
-
----
-
-## 🤖 Supported Agents
-
-| Agent | Adapter | Status |
-|-------|---------|--------|
-| 🟦 Claude Code | `claudecode` | ✅ Supported |
-| 🟩 Codex (OpenAI) | `codex` | ✅ Supported |
-| 🟪 Trae | `trae` | ✅ Supported |
-| 🟪 Trae CN | `traecn` | ✅ Supported |
-| 🟡 Gemini CLI | `geminicli` | ✅ Supported |
-| 🔴 OpenClaw | `openclaw` | ✅ Supported |
-| 🟠 Hermes | `hermes` | ✅ Supported |
-| 🔵 AIO Coding Hub | `aiocodinghub` | ✅ Supported |
 
 ---
 
@@ -259,7 +242,7 @@ agent-skills-manager/
 │   │   └── routes/                 # React Router configuration
 │   └── package.json
 ├── internal/
-│   ├── agents/                     # Agent adapters (8 adapters)
+│   ├── agents/                     # Agent adapters (7 adapters)
 │   ├── ai/                         # AI Bridge (Python Worker)
 │   ├── app/                        # Core application logic
 │   │   ├── app.go                  # App struct, initialization
@@ -278,7 +261,6 @@ agent-skills-manager/
 │   └── tasks/                      # Task history management
 ├── scripts/
 │   └── build.sh                    # Production build script
-├── test-screenshots/               # UI screenshots
 └── wails.json                      # Wails configuration
 ```
 
