@@ -12,14 +12,10 @@ import (
 	"time"
 
 	"github.com/caojun/agent-skills-manager/internal/agents"
-	"github.com/caojun/agent-skills-manager/internal/agents/aiocodinghub"
 	"github.com/caojun/agent-skills-manager/internal/agents/claudecode"
 	"github.com/caojun/agent-skills-manager/internal/agents/codex"
 	"github.com/caojun/agent-skills-manager/internal/agents/geminicli"
-	"github.com/caojun/agent-skills-manager/internal/agents/hermes"
 	"github.com/caojun/agent-skills-manager/internal/agents/openclaw"
-	"github.com/caojun/agent-skills-manager/internal/agents/trae"
-	"github.com/caojun/agent-skills-manager/internal/agents/traecn"
 	"github.com/caojun/agent-skills-manager/internal/ai"
 	"github.com/caojun/agent-skills-manager/internal/storage/sqlite"
 )
@@ -93,10 +89,6 @@ func New(repoRoot string, log *slog.Logger) (*App, error) {
 		claudecode.NewAdapter(claudecode.Config{}),
 		geminicli.NewAdapter(geminicli.Config{}),
 		openclaw.NewAdapter(openclaw.Config{}),
-		trae.NewAdapter(trae.Config{}),
-		traecn.NewAdapter(traecn.Config{}),
-		hermes.NewAdapter(hermes.Config{}),
-		aiocodinghub.NewAdapter(aiocodinghub.Config{}),
 	)
 
 	db, err := initDatabase()
