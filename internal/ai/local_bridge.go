@@ -14,6 +14,7 @@ type LocalBridge struct {
 	PythonPath string
 	Provider   string
 	Model      string
+	WorkerDir  string
 	Timeout    time.Duration
 }
 
@@ -29,6 +30,7 @@ func NewLocalBridge(pythonPath string, provider string, model string) *LocalBrid
 		PythonPath: pythonPath,
 		Provider:   provider,
 		Model:      model,
+		WorkerDir:  "", // 将在 Run 时设置
 		Timeout:    30 * time.Second,
 	}
 }
@@ -58,6 +60,11 @@ func (b *LocalBridge) Run(ctx context.Context, req WorkerRequest) (WorkerRespons
 
 	cmd := exec.CommandContext(ctx, b.PythonPath, args...)
 	cmd.Stdin = bytes.NewReader(payloadBytes)
+
+	// 设置工作目录为 python/worker，这样模块导入才能正常工作
+	if b.WorkerDir != "" {
+		cmd.Dir = b.WorkerDir
+	}
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout

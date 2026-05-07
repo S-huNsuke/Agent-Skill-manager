@@ -124,7 +124,12 @@ func New(repoRoot string, log *slog.Logger) (*App, error) {
 		app.skillGroups = make([]SkillGroupViewModel, 0)
 	}
 
-	app.bridge = ai.NewLocalBridge("python3", "none", "")
+	// 创建 AI Bridge，设置正确的工作目录
+	bridge := ai.NewLocalBridge("python3", "none", "")
+	// 设置 Python worker 的工作目录为 python/worker
+	workerDir := filepath.Join(bootstrap.RepoRoot, "python", "worker")
+	bridge.WorkerDir = workerDir
+	app.bridge = bridge
 
 	return app, nil
 }
