@@ -96,6 +96,8 @@ export function AssistantPanel({ task, onSubmitGoal, onAdvance, onReset, onClose
     if (msgs.length > 0) {
       setMessages(msgs);
     }
+    // 同步 task.status 到 currentStatus
+    setCurrentStatus(task.status);
   }, [task, submittedGoal]);
 
   useEffect(() => {
@@ -107,13 +109,17 @@ export function AssistantPanel({ task, onSubmitGoal, onAdvance, onReset, onClose
   const currentMeta = getTaskStatusMeta(currentStatus);
 
   /** 提交用户输入的目标 */
-  function handleSubmitGoal() {
+  async function handleSubmitGoal() {
     const trimmed = goalText.trim();
     if (!trimmed) return;
     setSubmittedGoal(trimmed);
     setCurrentStatus("planning");
-    onSubmitGoal?.(trimmed);
     setGoalText("");
+
+    // 等待提交完成并获取结果
+    if (onSubmitGoal) {
+      await onSubmitGoal(trimmed);
+    }
   }
 
   /** 重置对话 */

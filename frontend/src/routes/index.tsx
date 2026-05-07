@@ -222,9 +222,15 @@ export function AppRoutes({ snapshot, onRefresh }: AppRoutesProps) {
       >
         <AssistantPanel
           task={snapshot.assistant}
-          onSubmitGoal={(goal) => void handleSubmitGoal(goal, onRefresh)}
-          onAdvance={(taskID, action) => handleAdvanceTask(taskID, action, onRefresh)}
-          onReset={() => handleResetTask(onRefresh)}
+          onSubmitGoal={async (goal) => {
+            await handleSubmitGoal(goal, onRefresh);
+          }}
+          onAdvance={async (taskID, action) => {
+            return await handleAdvanceTask(taskID, action, onRefresh);
+          }}
+          onReset={async () => {
+            return await handleResetTask(onRefresh);
+          }}
           onClose={() => setAssistantOpen(false)}
         />
       </div>
