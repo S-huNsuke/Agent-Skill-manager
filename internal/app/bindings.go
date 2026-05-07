@@ -633,12 +633,66 @@ func (a *App) UpdateSkill(agentID string, skillName string, sourcePath string) s
 /** 提交 AI 助手目标 */
 func (a *App) SubmitGoal(goal string) AssistantTaskViewModel {
 	var result AssistantTaskViewModel
+	ctx := context.Background()
 
 	if a.bridge != nil {
-		resp, err := a.bridge.Run(context.Background(), ai.WorkerRequest{
+		// 收集当前系统状态作为上下文
+		agents := a.GetAgents()
+		skills := a.GetSkills()
+		projects := a.GetProjects()
+		storeItems := a.GetStoreItems()
+
+		// 构建上下文信息
+		contextData := map[string]any{
+			"agents_count":      len(agents),
+			"skills_count":      len(skills),
+			"projects_count":    len(projects),
+			"store_items_count": len(storeItems),
+		}
+
+		// 添加代理列表
+		agentsList := make([]map[string]any, 0, len(agents))
+		for _, agent := range agents {
+			agentsList = append(agentsList, map[string]any{
+				"id":     agent.ID,
+				"name":   agent.Name,
+				"status": agent.Status,
+				"skills": agent.Skills,
+			})
+		}
+		contextData["agents"] = agentsList
+
+		// 添加技能列表
+		skillsList := make([]map[string]any, 0, len(skills))
+		for _, skill := range skills {
+			skillsList = append(skillsList, map[string]any{
+				"name":    skill.Name,
+				"agent":   skill.Agent,
+				"status":  skill.StatusLabel,
+				"summary": skill.Summary,
+			})
+		}
+		contextData["skills"] = skillsList
+
+		// 添加商店技能列表（前20个）
+		storeSkillsList := make([]map[string]any, 0)
+		for i, item := range storeItems {
+			if i >= 20 {
+				break
+			}
+			storeSkillsList = append(storeSkillsList, map[string]any{
+				"name":    item.Name,
+				"author":  item.Author,
+				"summary": item.Summary,
+			})
+		}
+		contextData["available_skills"] = storeSkillsList
+
+		resp, err := a.bridge.Run(ctx, ai.WorkerRequest{
 			Action: "plan",
 			Payload: map[string]any{
-				"goal": goal,
+				"goal":    goal,
+				"context": contextData,
 			},
 		})
 		if err == nil && resp.Status == "ok" {

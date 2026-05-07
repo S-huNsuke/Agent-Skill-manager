@@ -27,7 +27,8 @@ def handle(payload: dict, provider: BaseProvider | None = None) -> dict:
     body = payload.get("payload", {})
 
     if action == "plan":
-        return {"status": "ok", "data": make_plan(body["goal"], provider=provider)}
+        context = body.get("context")
+        return {"status": "ok", "data": make_plan(body["goal"], context=context, provider=provider)}
     if action == "resolve":
         return {
             "status": "ok",
