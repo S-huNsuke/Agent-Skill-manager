@@ -635,6 +635,11 @@ func (a *App) SubmitGoal(goal string) AssistantTaskViewModel {
 	var result AssistantTaskViewModel
 	ctx := context.Background()
 
+	// 添加日志
+	if a.logger != nil {
+		a.logger.Info("SubmitGoal called", "goal", goal)
+	}
+
 	if a.bridge != nil {
 		// 收集当前系统状态作为上下文
 		agents := a.GetAgents()
@@ -695,6 +700,16 @@ func (a *App) SubmitGoal(goal string) AssistantTaskViewModel {
 				"context": contextData,
 			},
 		})
+
+		// 添加日志
+		if a.logger != nil {
+			if err != nil {
+				a.logger.Error("Python worker failed", "error", err)
+			} else {
+				a.logger.Info("Python worker success", "status", resp.Status)
+			}
+		}
+
 		if err == nil && resp.Status == "ok" {
 			data := resp.Data
 			planGoal, _ := data["goal"].(string)
@@ -751,6 +766,11 @@ func (a *App) SubmitGoal(goal string) AssistantTaskViewModel {
 	a.assistantMu.Lock()
 	a.activeTask = &result
 	a.assistantMu.Unlock()
+
+	// 添加日志
+	if a.logger != nil {
+		a.logger.Info("SubmitGoal completed", "taskID", result.ID, "status", result.Status)
+	}
 
 	if a.taskRepo != nil {
 		now := time.Now()
