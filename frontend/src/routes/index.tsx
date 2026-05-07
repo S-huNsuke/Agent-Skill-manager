@@ -64,10 +64,13 @@ async function handleSkillAction(action: string, agentID: string, skillName?: st
 }
 
 /** 处理 AI 助手目标提交 */
-async function handleSubmitGoal(goal: string): Promise<AppSnapshot["assistant"]> {
+async function handleSubmitGoal(goal: string, onRefresh: () => void): Promise<AppSnapshot["assistant"]> {
   const api = selectApi();
   try {
-    return await api.submitGoal(goal);
+    const result = await api.submitGoal(goal);
+    // 提交成功后刷新 snapshot 以获取最新状态
+    onRefresh();
+    return result;
   } catch (err) {
     return {
       id: "assistant-error",
@@ -83,15 +86,21 @@ async function handleSubmitGoal(goal: string): Promise<AppSnapshot["assistant"]>
 }
 
 /** 推进 AI 助手任务 */
-async function handleAdvanceTask(taskID: string, action: string): Promise<AppSnapshot["assistant"]> {
+async function handleAdvanceTask(taskID: string, action: string, onRefresh: () => void): Promise<AppSnapshot["assistant"]> {
   const api = selectApi();
-  return api.advanceAssistantTask(taskID, action);
+  const result = await api.advanceAssistantTask(taskID, action);
+  // 推进任务后刷新 snapshot 以获取最新状态
+  onRefresh();
+  return result;
 }
 
 /** 重置 AI 助手任务 */
-async function handleResetTask(): Promise<AppSnapshot["assistant"]> {
+async function handleResetTask(onRefresh: () => void): Promise<AppSnapshot["assistant"]> {
   const api = selectApi();
-  return api.resetAssistantTask();
+  const result = await api.resetAssistantTask();
+  // 重置后刷新 snapshot 以获取最新状态
+  onRefresh();
+  return result;
 }
 
 /** 应用主路由组件，包含侧边栏、内容区域与右侧 AI 助手面板 */
@@ -213,9 +222,9 @@ export function AppRoutes({ snapshot, onRefresh }: AppRoutesProps) {
       >
         <AssistantPanel
           task={snapshot.assistant}
-          onSubmitGoal={(goal) => void handleSubmitGoal(goal)}
-          onAdvance={handleAdvanceTask}
-          onReset={handleResetTask}
+          onSubmitGoal={(goal) => void handleSubmitGoal(goal, onRefresh)}
+          onAdvance={(taskID, action) => handleAdvanceTask(taskID, action, onRefresh)}
+          onReset={() => handleResetTask(onRefresh)}
           onClose={() => setAssistantOpen(false)}
         />
       </div>
