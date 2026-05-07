@@ -226,6 +226,30 @@ func (a *App) loadFromDatabase() {
 	} else {
 		a.skillGroups = make([]SkillGroupViewModel, 0)
 	}
+
+	// 加载最近的 AI 助手任务
+	if a.taskRepo != nil {
+		tasks, err := a.taskRepo.List(ctx)
+		if err == nil && len(tasks) > 0 {
+			// 查找最近的 ai_assistant 任务
+			for i := len(tasks) - 1; i >= 0; i-- {
+				task := tasks[i]
+				if task.TaskType == "ai_assistant" && task.Status != "completed" && task.Status != "failed" {
+					// 恢复任务状态
+					a.activeTask = &AssistantTaskViewModel{
+						ID:             task.ID,
+						Request:        task.TriggerSource,
+						Status:         task.Status,
+						NextStep:       "继续执行任务",
+						Summary:        fmt.Sprintf("正在处理任务：%s", task.TriggerSource),
+						Recommendation: "任务正在进行中",
+						Records:        []string{fmt.Sprintf("任务 ID: %s", task.ID)},
+					}
+					break
+				}
+			}
+		}
+	}
 }
 
 /** 默认内置商店源 */
