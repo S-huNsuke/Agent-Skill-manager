@@ -232,30 +232,10 @@ func (a *App) loadFromDatabase() {
 		a.skillGroups = make([]SkillGroupViewModel, 0)
 	}
 
-	// 加载最近的 AI 助手任务
-	if a.taskRepo != nil {
-		tasks, err := a.taskRepo.List(ctx)
-		if err == nil && len(tasks) > 0 {
-			// 查找最近的 ai_assistant 任务
-			for i := len(tasks) - 1; i >= 0; i-- {
-				task := tasks[i]
-				if task.TaskType == "ai_assistant" && task.Status != "completed" && task.Status != "failed" {
-					// 恢复任务状态
-					a.activeTask = &AssistantTaskViewModel{
-						ID:             task.ID,
-						Request:        task.TriggerSource,
-						Status:         task.Status,
-						NextStep:       "继续执行任务",
-						Summary:        fmt.Sprintf("正在处理任务：%s", task.TriggerSource),
-						Recommendation: "任务正在进行中",
-						Records:        []string{fmt.Sprintf("任务 ID: %s", task.ID)},
-					}
-					break
-				}
-			}
-		}
-	}
+	// 不再自动恢复 AI 助手任务，避免显示已完成的旧任务
+	// AI 助手任务应该是临时的，每次启动都从空闲状态开始
 }
+
 
 /** 默认内置商店源 */
 func defaultCatalogSources() []CatalogSourceViewModel {
