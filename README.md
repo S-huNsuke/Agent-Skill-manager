@@ -97,7 +97,7 @@ Agent Skills Manager 是一款原生 macOS 桌面应用，为 AI 代理技能提
 |------|------|
 | 💬 对话式交互 | 描述你的目标，AI 自动规划技能安装步骤 |
 | 🔄 多阶段工作流 | 规划 → 解析 → 执行 → 验证 → 报告 |
-| 🤖 多供应商 | 支持 OpenAI、Anthropic 或本地回退模式 |
+| 🤖 多供应商 | 支持 OpenAI、Anthropic、Google Gemini、OpenAI 兼容接口和本地回退模式 |
 | 📝 任务历史 | 完整的 AI 辅助任务历史记录 |
 
 ### ⚙️ 设置与自动化
@@ -234,6 +234,8 @@ docker run -d --name agent-skills-manager \
 
 ## 📁 项目结构
 
+更详细的模块职责和边界规范见 [项目架构说明](./docs/ARCHITECTURE.md)，开发、测试和提交前检查规范见 [开发规范](./docs/DEVELOPMENT.md)。
+
 ```
 agent-skills-manager/
 ├── build/                          # 构建资源和输出
@@ -247,21 +249,22 @@ agent-skills-manager/
 │   │   ├── components/             # 共享 UI 组件
 │   │   ├── features/               # 功能模块
 │   │   │   ├── agents/             # 代理管理页
+│   │   │   ├── ai/                 # AI 设置常量和辅助逻辑
 │   │   │   ├── assistant/          # AI 助手面板和页面
 │   │   │   ├── home/               # 仪表盘/首页
 │   │   │   ├── projects/           # 项目管理页
 │   │   │   ├── settings/           # 设置页
 │   │   │   ├── skills/             # 技能管理页
 │   │   │   └── store/              # 技能商店页
-│   │   ├── lib/                    # API 层、类型、工具
+│   │   ├── lib/                    # API 层、类型、mock 数据和工具
 │   │   └── routes/                 # React Router 配置
 │   └── package.json
 ├── internal/
-│   ├── agents/                     # 代理适配器（7 个）
+│   ├── agents/                     # 代理注册表和具体代理适配器
 │   ├── ai/                         # AI 桥接（Python Worker）
 │   ├── app/                        # 核心应用逻辑
 │   │   ├── app.go                  # App 结构体、初始化
-│   │   ├── bindings.go             # Wails 绑定方法
+│   │   ├── bindings*.go            # Wails 绑定方法，按业务域拆分
 │   │   ├── converters.go           # 领域 ↔ 视图模型转换
 │   │   ├── scheduler.go            # 定时任务调度器
 │   │   └── viewmodels.go           # 视图模型类型定义
@@ -274,8 +277,10 @@ agent-skills-manager/
 │   ├── storage/
 │   │   └── sqlite/                 # SQLite 仓库和迁移
 │   └── tasks/                      # 任务历史管理
-├── scripts/
-│   └── build.sh                    # 生产构建脚本
+├── python/
+│   └── worker/                     # AI Worker、任务流水线和供应商适配
+├── scripts/                        # 当前构建、运行和验证脚本
+├── script/                         # 兼容旧命令的包装脚本
 └── wails.json                      # Wails 配置
 ```
 
@@ -283,23 +288,27 @@ agent-skills-manager/
 
 ## 🔧 开发指南
 
+完整开发规范见 [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md)。
+
 ### 前端开发
 
 ```bash
-cd frontend
-pnpm install
-pnpm dev                # 启动 Vite 开发服务器
-pnpm build              # 生产构建
-pnpm exec tsc --noEmit  # 类型检查
+pnpm --dir frontend install
+pnpm --dir frontend dev                # 启动 Vite 开发服务器
+pnpm --dir frontend build              # 生产构建
+pnpm --dir frontend exec tsc --noEmit  # 类型检查
+pnpm --dir frontend test -- --run      # 运行前端测试
 ```
 
 ### 后端开发
 
 ```bash
 go vet ./...              # 静态分析
-go test ./... -count=1    # 运行所有测试
+GOCACHE="$PWD/.gocache" go test ./...  # 运行 Go 测试，缓存放在项目内
 go build ./cmd/agent-skills-manager/  # 构建二进制
 ```
+
+> `.gocache/` 是 Go 构建和测试缓存，只用于加速本地编译。它不是源码，可以安全删除，并已通过 `.gitignore` 忽略。
 
 ### 添加新的代理适配器
 
@@ -310,7 +319,7 @@ go build ./cmd/agent-skills-manager/  # 构建二进制
 ### 添加新功能
 
 1. 在 `internal/app/viewmodels.go` 中定义视图模型
-2. 在 `internal/app/bindings.go` 中实现 Wails 绑定方法
+2. 在 `internal/app/bindings_<domain>.go` 中实现 Wails 绑定方法
 3. 在 `frontend/src/lib/api.ts` 中添加 API 方法
 4. 在 `frontend/src/features/<feature>/` 中创建 UI 页面
 
