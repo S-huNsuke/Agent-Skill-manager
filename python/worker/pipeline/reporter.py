@@ -4,7 +4,7 @@ import json
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from providers.base import BaseProvider
+    from worker.providers.base import BaseProvider
 
 _SYSTEM_PROMPT = """你是一个技能管理报告助手。你会收到执行结果，需要生成用户友好的摘要报告。
 
@@ -35,7 +35,7 @@ def render_report(result: dict, provider: BaseProvider | None = None) -> dict:
 
     import asyncio
 
-    from providers.base import ProviderRequest
+    from worker.providers.base import ProviderRequest
 
     request = ProviderRequest(
         system_prompt=_SYSTEM_PROMPT,

@@ -7,13 +7,16 @@ from pathlib import Path
 from unittest.mock import AsyncMock
 
 ROOT = Path(__file__).resolve().parents[2]
-WORKER_ROOT = ROOT / "python" / "worker"
-sys.path.insert(0, str(WORKER_ROOT))
+PYTHON_ROOT = ROOT / "python"
+WORKER_ROOT = PYTHON_ROOT / "worker"
+sys.path.insert(0, str(PYTHON_ROOT))
 
-from pipeline.planner import make_plan
-from pipeline.reporter import render_report
-from pipeline.resolver import resolve_plan
-from providers.base import BaseProvider, ProviderRequest, ProviderResponse
+from worker.main import handle
+from worker.pipeline.chat import chat
+from worker.pipeline.planner import make_plan
+from worker.pipeline.reporter import render_report
+from worker.pipeline.resolver import resolve_plan
+from worker.providers.base import BaseProvider, ProviderRequest, ProviderResponse
 
 
 def test_make_plan_returns_expected_steps() -> None:
@@ -109,16 +112,86 @@ def test_main_entrypoint_handles_plan_action() -> None:
         "payload": {"goal": "set up a project skill group"},
     }
     completed = subprocess.run(
-        [sys.executable, str(WORKER_ROOT / "main.py")],
+        [sys.executable, "-m", "worker.main"],
         input=json.dumps(payload),
         text=True,
         capture_output=True,
+        cwd=PYTHON_ROOT,
         check=True,
     )
 
     response = json.loads(completed.stdout)
     assert response["status"] == "ok"
     assert response["data"]["goal"] == "set up a project skill group"
+
+
+def test_handle_accepts_structured_resolve_payload() -> None:
+    plan = {
+        "goal": "install a skill",
+        "steps": [{"action": "recommend", "label": "推荐技能", "detail": "推荐适合的技能"}],
+        "revision": 1,
+    }
+
+    response = handle(
+        {
+            "action": "resolve",
+            "payload": {
+                "plan": plan,
+                "has_artifact": True,
+                "adapter_owns_target": True,
+            },
+        }
+    )
+
+    assert response["status"] == "ok"
+    assert response["data"]["goal"] == "install a skill"
+    assert response["data"]["status"] == "ready"
+    assert response["data"]["prerequisites"]["has_artifact"] is True
+
+
+def test_handle_accepts_result_payload_for_report() -> None:
+    response = handle(
+        {
+            "action": "report",
+            "payload": {
+                "result": {
+                    "status": "completed",
+                    "records": ["done"],
+                }
+            },
+        }
+    )
+
+    assert response["status"] == "ok"
+    assert response["data"]["status"] == "completed"
+
+
+def test_handle_accepts_chat_payload() -> None:
+    response = handle(
+        {
+            "action": "chat",
+            "payload": {
+                "message": "你好",
+                "history": [],
+            },
+        }
+    )
+
+    assert response["status"] == "ok"
+    assert "reply" in response["data"]
+    assert "你好" in response["data"]["reply"]
+
+
+def test_chat_strips_reasoning_blocks_from_provider_reply() -> None:
+    mock_provider = AsyncMock(spec=BaseProvider)
+    mock_provider.complete.return_value = ProviderResponse(
+        text="<think>这里是内部推理，不应显示</think>\n最终答案"
+    )
+
+    response = chat("你好", provider=mock_provider)
+
+    assert response["reply"] == "最终答案"
+    assert "内部推理" not in response["reply"]
 
 
 def test_provider_request_response_dataclass() -> None:

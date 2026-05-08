@@ -44,25 +44,25 @@ type App struct {
 	ctx       context.Context
 	registry  AgentRegistry
 
-	db              *sql.DB
-	projectsRepo    *sqlite.ProjectRepository
-	skillGroupsRepo *sqlite.SkillGroupRepository
-	catalogSrcRepo  *sqlite.CatalogSourceRepository
+	db               *sql.DB
+	projectsRepo     *sqlite.ProjectRepository
+	skillGroupsRepo  *sqlite.SkillGroupRepository
+	catalogSrcRepo   *sqlite.CatalogSourceRepository
 	catalogSkillRepo *sqlite.CatalogSkillRepository
-	settingsRepo    *sqlite.SettingsRepository
-	taskRepo        *sqlite.TaskRepository
-	bridge          ai.Bridge
+	settingsRepo     *sqlite.SettingsRepository
+	taskRepo         *sqlite.TaskRepository
+	bridge           ai.Bridge
 
 	catalogMu      sync.RWMutex
 	catalogSources []CatalogSourceViewModel
 	catalogItems   []StoreItemViewModel
 
-	projectsMu sync.RWMutex
-	projects   []ProjectViewModel
+	projectsMu  sync.RWMutex
+	projects    []ProjectViewModel
 	skillGroups []SkillGroupViewModel
 
-	assistantMu    sync.Mutex
-	activeTask     *AssistantTaskViewModel
+	assistantMu sync.Mutex
+	activeTask  *AssistantTaskViewModel
 
 	scheduler *Scheduler
 }
@@ -126,9 +126,11 @@ func New(repoRoot string, log *slog.Logger) (*App, error) {
 
 	// 创建 AI Bridge，设置正确的工作目录
 	bridge := ai.NewLocalBridge("python3", "none", "")
-	// 设置 Python worker 的工作目录为 python/worker
-	workerDir := filepath.Join(bootstrap.RepoRoot, "python", "worker")
+	// 设置 Python worker 的工作目录为 python，这样可以使用 `-m worker.main`
+	workerDir := filepath.Join(bootstrap.RepoRoot, "python")
 	bridge.WorkerDir = workerDir
+	aiSettings := app.GetAISettings()
+	bridge.UpdateConfig(aiSettings.Provider, aiSettings.Model, aiSettings.APIKey, aiSettings.BaseURL)
 	app.bridge = bridge
 
 	return app, nil
@@ -235,7 +237,6 @@ func (a *App) loadFromDatabase() {
 	// 不再自动恢复 AI 助手任务，避免显示已完成的旧任务
 	// AI 助手任务应该是临时的，每次启动都从空闲状态开始
 }
-
 
 /** 默认内置商店源 */
 func defaultCatalogSources() []CatalogSourceViewModel {

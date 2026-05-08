@@ -2,36 +2,46 @@
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-BIN_NAME="agent-skills-manager"
 BUILD_DIR="${PROJECT_DIR}/build/bin"
-APP_BUNDLE="${BUILD_DIR}/${BIN_NAME}.app"
+BIN_NAME="agent-skills-manager"
+APP_BUNDLE="${BUILD_DIR}/agent-skills-manager.app"
+APP_MACOS="${APP_BUNDLE}/Contents/MacOS"
+APP_RESOURCES="${APP_BUNDLE}/Contents/Resources"
+APP_BINARY="${APP_MACOS}/${BIN_NAME}"
+
+export GOCACHE="${PROJECT_DIR}/.gocache"
+export TMPDIR="/private/tmp/agent-skills-manager"
+export CGO_ENABLED=1
+export CGO_CFLAGS="-mmacosx-version-min=10.13"
+export CGO_LDFLAGS="-framework UniformTypeIdentifiers -mmacosx-version-min=10.13"
+
+mkdir -p "${GOCACHE}"
+mkdir -p "${TMPDIR}"
 
 echo "=== Building Agent Skills Manager ==="
-
 echo "[1/4] Building frontend..."
 pnpm --dir "${PROJECT_DIR}/frontend" install
 pnpm --dir "${PROJECT_DIR}/frontend" build
 
 echo "[2/4] Compiling Go binary..."
 mkdir -p "${BUILD_DIR}"
-CGO_ENABLED=1 \
-  CGO_CFLAGS="-mmacosx-version-min=10.13" \
-  CGO_LDFLAGS="-framework UniformTypeIdentifiers -mmacosx-version-min=10.13" \
-  GOOS=darwin GOARCH=arm64 \
-  go build -buildvcs=false \
-    -tags "desktop,wv2runtime.download,production" \
-    -ldflags "-w -s" \
-    -o "${BUILD_DIR}/${BIN_NAME}" \
-    ./cmd/agent-skills-manager/
+go build -buildvcs=false \
+  -tags "desktop,wv2runtime.download,production" \
+  -ldflags "-w -s" \
+  -o "${BUILD_DIR}/${BIN_NAME}" \
+  ./cmd/agent-skills-manager/
 
-chmod +x "${BUILD_DIR}/${BIN_NAME}"
-echo "  Binary: $(file "${BUILD_DIR}/${BIN_NAME}")"
+if [ ! -x "${BUILD_DIR}/${BIN_NAME}" ]; then
+  echo "missing app binary: ${BUILD_DIR}/${BIN_NAME}" >&2
+  exit 1
+fi
 
 echo "[3/4] Packaging .app bundle..."
-mkdir -p "${APP_BUNDLE}/Contents/MacOS"
-mkdir -p "${APP_BUNDLE}/Contents/Resources"
-
-cp "${BUILD_DIR}/${BIN_NAME}" "${APP_BUNDLE}/Contents/MacOS/${BIN_NAME}"
+rm -rf "${APP_BUNDLE}"
+mkdir -p "${APP_MACOS}"
+mkdir -p "${APP_RESOURCES}"
+cp "${BUILD_DIR}/${BIN_NAME}" "${APP_BINARY}"
+chmod +x "${APP_BINARY}"
 
 cat > "${APP_BUNDLE}/Contents/Info.plist" << 'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -58,6 +68,8 @@ cat > "${APP_BUNDLE}/Contents/Info.plist" << 'PLIST'
     <string>10.13</string>
     <key>NSHighResolutionCapable</key>
     <true/>
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
     <key>NSHumanReadableCopyright</key>
     <string>Copyright 2026. All rights reserved.</string>
 </dict>
@@ -65,18 +77,15 @@ cat > "${APP_BUNDLE}/Contents/Info.plist" << 'PLIST'
 PLIST
 
 if [ -f "${PROJECT_DIR}/build/appicon.icns" ]; then
-  cp "${PROJECT_DIR}/build/appicon.icns" "${APP_BUNDLE}/Contents/Resources/iconfile.icns"
+  cp "${PROJECT_DIR}/build/appicon.icns" "${APP_RESOURCES}/iconfile.icns"
 fi
 
-echo "[4/4] Signing .app bundle..."
 xattr -cr "${APP_BUNDLE}" 2>/dev/null || true
+
+echo "[4/4] Signing .app bundle..."
 codesign --force --deep --sign - "${APP_BUNDLE}" 2>/dev/null || echo "  Warning: codesign failed (non-fatal for development)"
 
 echo ""
 echo "=== Build complete ==="
-echo "  Binary:  ${BUILD_DIR}/${BIN_NAME}"
 echo "  Bundle:  ${APP_BUNDLE}"
-echo ""
-echo "Run with:"
-echo "  ${BUILD_DIR}/${BIN_NAME}"
-echo "  open ${APP_BUNDLE}"
+echo "  Open:    /usr/bin/open -n ${APP_BUNDLE}"

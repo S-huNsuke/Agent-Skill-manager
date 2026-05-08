@@ -1,6 +1,6 @@
 import { useCallback, Component, useEffect, useState, startTransition, type ReactNode } from "react";
 import { HashRouter } from "react-router-dom";
-import { selectApi, mockApi, isRunningInWails } from "./lib/api";
+import { mockApi, isRunningInWails, waitForApi } from "./lib/api";
 import type { AppSnapshot } from "./lib/mocks";
 import type { FrontendApi } from "./lib/api";
 import { AppRoutes } from "./routes";
@@ -83,6 +83,8 @@ function ensureArrays(snapshot: AppSnapshot): AppSnapshot {
     assistant: {
       ...snapshot.assistant,
       records: snapshot.assistant?.records ?? [],
+      planSteps: snapshot.assistant?.planSteps ?? [],
+      resolvedActions: snapshot.assistant?.resolvedActions ?? [],
     },
     dashboard: {
       ...snapshot.dashboard,
@@ -125,16 +127,27 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const selectedApi = selectApi();
-    setApi(selectedApi);
-    void loadSnapshot(selectedApi);
+    let cancelled = false;
+    async function init() {
+      const selectedApi = await waitForApi();
+      if (cancelled) return;
+      setApi(selectedApi);
+      await loadSnapshot(selectedApi);
+    }
+    void init();
+    return () => {
+      cancelled = true;
+    };
   }, [loadSnapshot]);
 
   /** 刷新快照数据 */
   const refreshSnapshot = useCallback(async () => {
-    if (!api) return;
     try {
-      const rawSnapshot = await api.refreshSnapshot();
+      const apiInstance = await waitForApi();
+      if (api !== apiInstance) {
+        setApi(apiInstance);
+      }
+      const rawSnapshot = await apiInstance.refreshSnapshot();
       const nextSnapshot = ensureArrays(rawSnapshot);
       startTransition(() => {
         setSnapshot(nextSnapshot);

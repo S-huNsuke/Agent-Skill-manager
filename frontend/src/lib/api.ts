@@ -6,6 +6,8 @@ import type {
   AppInfoViewModel,
   AppSnapshot,
   AssistantTaskViewModel,
+  AssistantChatMessageViewModel,
+  AssistantChatResponseViewModel,
   AutomationSettingsViewModel,
   AISettingsViewModel,
   CatalogSourceViewModel,
@@ -40,6 +42,7 @@ export interface FrontendApi {
   uninstallSkill(agentID: string, skillName: string): Promise<string>;
   updateSkill(agentID: string, skillName: string, sourcePath: string): Promise<string>;
   submitGoal(goal: string): Promise<AssistantTaskViewModel>;
+  chatAssistant(message: string, history: AssistantChatMessageViewModel[]): Promise<AssistantChatResponseViewModel>;
   advanceAssistantTask(taskID: string, action: string): Promise<AssistantTaskViewModel>;
   resetAssistantTask(): Promise<AssistantTaskViewModel>;
   getAgentSkills(agentID: string): Promise<SkillViewModel[]>;
@@ -71,6 +74,7 @@ export interface FrontendApi {
   reconcileProject(projectID: string): Promise<ReconcilePlanViewModel>;
   executeReconcilePlan(projectID: string, planJSON: string): Promise<string>;
   getTaskHistory(limit: number): Promise<TaskHistoryItem[]>;
+  deleteTaskHistoryItem(taskID: string): Promise<string>;
   getSuggestionTemplates(): Promise<SuggestionTemplate[]>;
   getAppInfoFull(): Promise<AppInfoViewModel>;
   getGeneralSettings(): Promise<GeneralSettingsViewModel>;
@@ -108,6 +112,14 @@ export const mockApi: FrontendApi = {
     recommendation: "AI 助手正在分析您的目标，稍后将给出技能推荐。",
     reason: "",
     records: [`用户提交目标: ${goal}`, "状态: 规划中"],
+    planJson: "",
+    planSteps: [],
+    resolvedActions: [],
+  }),
+  chatAssistant: (message: string) => resolved({
+    reply: `我收到你的消息了：${message}`,
+    provider: "none",
+    model: "",
   }),
   advanceAssistantTask: (taskID: string, action: string) => resolved({
     id: taskID,
@@ -118,6 +130,9 @@ export const mockApi: FrontendApi = {
     recommendation: "",
     reason: "",
     records: [],
+    planJson: "",
+    planSteps: [],
+    resolvedActions: [],
   }),
   resetAssistantTask: () => resolved({
     id: "assistant-idle",
@@ -128,6 +143,9 @@ export const mockApi: FrontendApi = {
     recommendation: "输入一个目标，让 AI 帮你规划技能安装与修复。",
     reason: "",
     records: [],
+    planJson: "",
+    planSteps: [],
+    resolvedActions: [],
   }),
   getAgentSkills: () => resolved([]),
   openInFinder: () => resolved("ok"),
@@ -158,6 +176,7 @@ export const mockApi: FrontendApi = {
   reconcileProject: () => resolved({ projectId: "", projectName: "", install: [], update: [], repair: [], blockReason: "" }),
   executeReconcilePlan: () => resolved("ok"),
   getTaskHistory: () => resolved([]),
+  deleteTaskHistoryItem: () => resolved("ok"),
   getSuggestionTemplates: () => resolved([]),
   getAppInfoFull: () => resolved({ name: "Agent Skills Manager", version: "0.1.0", buildTime: "", goVersion: "", os: "", arch: "" }),
   getGeneralSettings: () => resolved({ theme: "light", fontSize: "medium", notificationsEnabled: true, language: "zh-CN" }),
@@ -196,6 +215,10 @@ function findWailsMethod(methodName: string): ((...args: unknown[]) => Promise<u
   return null;
 }
 
+function hasWailsSnapshotBinding(): boolean {
+  return findWailsMethod("GetSnapshot") !== null;
+}
+
 async function wailsCall<T>(methodName: string, ...args: unknown[]): Promise<T> {
   const method = findWailsMethod(methodName);
   if (method) {
@@ -219,6 +242,7 @@ export const wailsApi: FrontendApi = {
   uninstallSkill: (agentID: string, skillName: string) => wailsCall<string>("UninstallSkill", agentID, skillName),
   updateSkill: (agentID: string, skillName: string, sourcePath: string) => wailsCall<string>("UpdateSkill", agentID, skillName, sourcePath),
   submitGoal: (goal: string) => wailsCall<AssistantTaskViewModel>("SubmitGoal", goal),
+  chatAssistant: (message: string, history: AssistantChatMessageViewModel[]) => wailsCall<AssistantChatResponseViewModel>("ChatAssistant", message, history),
   advanceAssistantTask: (taskID: string, action: string) => wailsCall<AssistantTaskViewModel>("AdvanceAssistantTask", taskID, action),
   resetAssistantTask: () => wailsCall<AssistantTaskViewModel>("ResetAssistantTask"),
   getAgentSkills: (agentID: string) => wailsCall<SkillViewModel[]>("GetAgentSkills", agentID),
@@ -250,6 +274,7 @@ export const wailsApi: FrontendApi = {
   reconcileProject: (projectID: string) => wailsCall<ReconcilePlanViewModel>("ReconcileProject", projectID),
   executeReconcilePlan: (projectID: string, planJSON: string) => wailsCall<string>("ExecuteReconcilePlan", projectID, planJSON),
   getTaskHistory: (limit: number) => wailsCall<TaskHistoryItem[]>("GetTaskHistory", limit),
+  deleteTaskHistoryItem: (taskID: string) => wailsCall<string>("DeleteTaskHistoryItem", taskID),
   getSuggestionTemplates: () => wailsCall<SuggestionTemplate[]>("GetSuggestionTemplates"),
   getAppInfoFull: () => wailsCall<AppInfoViewModel>("GetAppInfoFull"),
   getGeneralSettings: () => wailsCall<GeneralSettingsViewModel>("GetGeneralSettings"),
@@ -268,6 +293,22 @@ export function isRunningInWails(): boolean {
   return typeof w.go === "object" && w.go !== null;
 }
 
+export function hasWailsBindings(): boolean {
+  return hasWailsSnapshotBinding();
+}
+
+export async function waitForApi(timeoutMs = 3000, intervalMs = 50): Promise<FrontendApi> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (hasWailsSnapshotBinding()) {
+      return wailsApi;
+    }
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+  }
+
+  return hasWailsSnapshotBinding() ? wailsApi : mockApi;
+}
+
 export function selectApi(): FrontendApi {
-  return isRunningInWails() ? wailsApi : mockApi;
+  return hasWailsSnapshotBinding() ? wailsApi : mockApi;
 }

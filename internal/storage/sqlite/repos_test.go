@@ -124,6 +124,96 @@ func TestProjectAndTaskRepositoriesPersistRequiredFields(t *testing.T) {
 	}
 }
 
+func TestTaskRepositoryAllowsAssistantTasksWithoutProject(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	db, err := Open(":memory:")
+	if err != nil {
+		t.Fatalf("open db: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = db.Close()
+	})
+
+	if err := Migrate(db); err != nil {
+		t.Fatalf("migrate db: %v", err)
+	}
+
+	taskRepo := NewTaskRepository(db)
+
+	now := time.Date(2026, 5, 2, 13, 14, 0, 0, time.UTC)
+	task := domain.Task{
+		ID:            "assistant-task-1",
+		TaskType:      "ai_assistant",
+		TriggerSource: "install a skill",
+		Status:        "planning",
+		PlanJSON:      `{"goal":"install a skill"}`,
+		ActionLog:     "planning started",
+		ResultSummary: "planning",
+		StartedAt:     &now,
+	}
+
+	if err := taskRepo.Put(ctx, task); err != nil {
+		t.Fatalf("put assistant task: %v", err)
+	}
+
+	storedTask, err := taskRepo.GetByID(ctx, task.ID)
+	if err != nil {
+		t.Fatalf("get assistant task: %v", err)
+	}
+	if storedTask.ProjectID != "" {
+		t.Fatalf("assistant task project_id mismatch: got %q want empty", storedTask.ProjectID)
+	}
+	if storedTask.TaskType != "ai_assistant" {
+		t.Fatalf("assistant task type mismatch: got %q want %q", storedTask.TaskType, "ai_assistant")
+	}
+}
+
+func TestTaskRepositoryDeleteRemovesTask(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	db, err := Open(":memory:")
+	if err != nil {
+		t.Fatalf("open db: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = db.Close()
+	})
+
+	if err := Migrate(db); err != nil {
+		t.Fatalf("migrate db: %v", err)
+	}
+
+	taskRepo := NewTaskRepository(db)
+	now := time.Date(2026, 5, 8, 10, 0, 0, 0, time.UTC)
+	task := domain.Task{
+		ID:            "task-delete-1",
+		TaskType:      "ai_assistant",
+		TriggerSource: "delete me",
+		Status:        "completed",
+		StartedAt:     &now,
+	}
+
+	if err := taskRepo.Put(ctx, task); err != nil {
+		t.Fatalf("put task: %v", err)
+	}
+	if err := taskRepo.Delete(ctx, task.ID); err != nil {
+		t.Fatalf("delete task: %v", err)
+	}
+
+	tasks, err := taskRepo.ListRecent(ctx, 10)
+	if err != nil {
+		t.Fatalf("list tasks: %v", err)
+	}
+	if len(tasks) != 0 {
+		t.Fatalf("task was not deleted: got %d tasks", len(tasks))
+	}
+}
+
 func TestProjectRepositoryPutPreservesCreatedAtOnUpdate(t *testing.T) {
 	t.Parallel()
 
@@ -410,11 +500,11 @@ func TestCatalogSourceRepositoryPutAndList(t *testing.T) {
 	repo := NewCatalogSourceRepository(db)
 
 	source := domain.CatalogSource{
-		ID:       "source-1",
-		Name:     "Official Catalog",
-		URL:      "https://catalog.example.com/skills.json",
+		ID:        "source-1",
+		Name:      "Official Catalog",
+		URL:       "https://catalog.example.com/skills.json",
 		IsBuiltin: true,
-		Enabled:  true,
+		Enabled:   true,
 	}
 
 	if err := repo.Put(ctx, source); err != nil {
@@ -676,8 +766,8 @@ func TestMigrateRecordsAppliedMigrationsAndSkipsReapplying(t *testing.T) {
 	}
 
 	firstCount := countRows(t, db, "schema_migrations")
-	if firstCount != 3 {
-		t.Fatalf("expected 3 recorded migrations after first run, got %d", firstCount)
+	if firstCount != 4 {
+		t.Fatalf("expected 4 recorded migrations after first run, got %d", firstCount)
 	}
 
 	if err := Migrate(db); err != nil {
@@ -685,8 +775,8 @@ func TestMigrateRecordsAppliedMigrationsAndSkipsReapplying(t *testing.T) {
 	}
 
 	secondCount := countRows(t, db, "schema_migrations")
-	if secondCount != 3 {
-		t.Fatalf("expected 3 recorded migrations after second run, got %d", secondCount)
+	if secondCount != 4 {
+		t.Fatalf("expected 4 recorded migrations after second run, got %d", secondCount)
 	}
 }
 

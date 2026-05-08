@@ -7,7 +7,7 @@ import { ProjectsPage } from "../features/projects/ProjectsPage";
 import { SettingsPage } from "../features/settings/SettingsPage";
 import { SkillsPage } from "../features/skills/SkillsPage";
 import { StorePage } from "../features/store/StorePage";
-import { selectApi } from "../lib/api";
+import { waitForApi } from "../lib/api";
 import type { AppSnapshot } from "../lib/mocks";
 
 interface AppRoutesProps {
@@ -36,7 +36,7 @@ function navLinkClass(isActive: boolean, collapsed: boolean): string {
 
 /** 处理技能操作（安装/卸载/更新/修复） */
 async function handleSkillAction(action: string, agentID: string, skillName?: string, cachePath?: string) {
-  const api = selectApi();
+  const api = await waitForApi();
   try {
     let result: string;
     switch (action) {
@@ -63,31 +63,9 @@ async function handleSkillAction(action: string, agentID: string, skillName?: st
   }
 }
 
-/** 处理 AI 助手目标提交 */
-async function handleSubmitGoal(goal: string, onRefresh: () => void): Promise<AppSnapshot["assistant"]> {
-  const api = selectApi();
-  try {
-    const result = await api.submitGoal(goal);
-    // 提交成功后刷新 snapshot 以获取最新状态
-    onRefresh();
-    return result;
-  } catch (err) {
-    return {
-      id: "assistant-error",
-      request: goal,
-      status: "failed",
-      nextStep: "提交失败",
-      summary: `目标提交失败: ${err instanceof Error ? err.message : String(err)}`,
-      recommendation: "",
-      reason: "",
-      records: [],
-    };
-  }
-}
-
 /** 推进 AI 助手任务 */
 async function handleAdvanceTask(taskID: string, action: string, onRefresh: () => void): Promise<AppSnapshot["assistant"]> {
-  const api = selectApi();
+  const api = await waitForApi();
   const result = await api.advanceAssistantTask(taskID, action);
   // 推进任务后刷新 snapshot 以获取最新状态
   onRefresh();
@@ -96,7 +74,7 @@ async function handleAdvanceTask(taskID: string, action: string, onRefresh: () =
 
 /** 重置 AI 助手任务 */
 async function handleResetTask(onRefresh: () => void): Promise<AppSnapshot["assistant"]> {
-  const api = selectApi();
+  const api = await waitForApi();
   const result = await api.resetAssistantTask();
   // 重置后刷新 snapshot 以获取最新状态
   onRefresh();
@@ -222,9 +200,6 @@ export function AppRoutes({ snapshot, onRefresh }: AppRoutesProps) {
       >
         <AssistantPanel
           task={snapshot.assistant}
-          onSubmitGoal={async (goal) => {
-            await handleSubmitGoal(goal, onRefresh);
-          }}
           onAdvance={async (taskID, action) => {
             return await handleAdvanceTask(taskID, action, onRefresh);
           }}

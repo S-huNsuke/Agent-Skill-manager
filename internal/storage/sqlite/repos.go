@@ -746,7 +746,7 @@ func (r *TaskRepository) Put(ctx context.Context, task domain.Task) error {
 		task.ID,
 		task.TaskType,
 		task.TriggerSource,
-		task.ProjectID,
+		nullableString(task.ProjectID),
 		nullableString(task.SkillGroupID),
 		task.Status,
 		task.StatusReason,
@@ -773,6 +773,7 @@ func (r *TaskRepository) GetByID(ctx context.Context, id string) (domain.Task, e
 	)
 
 	var task domain.Task
+	var projectID sql.NullString
 	var skillGroupID sql.NullString
 	var startedAt sql.NullString
 	var finishedAt sql.NullString
@@ -781,7 +782,7 @@ func (r *TaskRepository) GetByID(ctx context.Context, id string) (domain.Task, e
 		&task.ID,
 		&task.TaskType,
 		&task.TriggerSource,
-		&task.ProjectID,
+		&projectID,
 		&skillGroupID,
 		&task.Status,
 		&task.StatusReason,
@@ -795,6 +796,7 @@ func (r *TaskRepository) GetByID(ctx context.Context, id string) (domain.Task, e
 		return domain.Task{}, fmt.Errorf("get task %s: %w", id, err)
 	}
 
+	task.ProjectID = projectID.String
 	task.SkillGroupID = skillGroupID.String
 
 	var err error
@@ -826,6 +828,7 @@ func (r *TaskRepository) ListRecent(ctx context.Context, limit int) ([]domain.Ta
 	var tasks []domain.Task
 	for rows.Next() {
 		var task domain.Task
+		var projectID sql.NullString
 		var skillGroupID sql.NullString
 		var startedAt sql.NullString
 		var finishedAt sql.NullString
@@ -834,7 +837,7 @@ func (r *TaskRepository) ListRecent(ctx context.Context, limit int) ([]domain.Ta
 			&task.ID,
 			&task.TaskType,
 			&task.TriggerSource,
-			&task.ProjectID,
+			&projectID,
 			&skillGroupID,
 			&task.Status,
 			&task.StatusReason,
@@ -848,6 +851,7 @@ func (r *TaskRepository) ListRecent(ctx context.Context, limit int) ([]domain.Ta
 			return nil, fmt.Errorf("scan task: %w", err)
 		}
 
+		task.ProjectID = projectID.String
 		task.SkillGroupID = skillGroupID.String
 		task.StartedAt, _ = parseNullableTime(startedAt)
 		task.FinishedAt, _ = parseNullableTime(finishedAt)
@@ -855,6 +859,14 @@ func (r *TaskRepository) ListRecent(ctx context.Context, limit int) ([]domain.Ta
 	}
 
 	return tasks, nil
+}
+
+/** 删除任务 */
+func (r *TaskRepository) Delete(ctx context.Context, id string) error {
+	if _, err := r.db.ExecContext(ctx, `DELETE FROM tasks WHERE id = ?`, id); err != nil {
+		return fmt.Errorf("delete task %s: %w", id, err)
+	}
+	return nil
 }
 
 // --- Shared helpers ---

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import type { DiagnosticItemViewModel, GeneralSettingsViewModel, AutomationSettingsViewModel, AISettingsViewModel, AppInfoViewModel } from "../../lib/mocks";
-import { selectApi, isRunningInWails } from "../../lib/api";
+import { isRunningInWails, waitForApi } from "../../lib/api";
 import { StatusBadge } from "../../components/StatusBadge";
+import { aiProviderPresets, applyPreset, defaultAISettings, getModelOptions, getPresetFromSettings, type AiPreset } from "../ai/aiSettings";
 
 interface SettingsPageProps {
   diagnostics: DiagnosticItemViewModel[];
@@ -44,27 +45,63 @@ function getWailsBindingDiagnostics(): { label: string; value: string; tone: str
 export function SettingsPage({ diagnostics, onRefresh }: SettingsPageProps) {
   const [activeTab, setActiveTab] = useState<SettingsTab>("general");
   const [bindingDiag, setBindingDiag] = useState<{ label: string; value: string; tone: string }[]>([]);
-  const [generalSettings, setGeneralSettings] = useState<GeneralSettingsViewModel | null>(null);
-  const [automationSettings, setAutomationSettings] = useState<AutomationSettingsViewModel | null>(null);
-  const [aiSettings, setAiSettings] = useState<AISettingsViewModel | null>(null);
+  const [generalSettings, setGeneralSettings] = useState<GeneralSettingsViewModel>({ theme: "light", fontSize: "medium", notificationsEnabled: true, language: "zh-CN" });
+  const [automationSettings, setAutomationSettings] = useState<AutomationSettingsViewModel>({ autoSyncCatalog: true, autoCheckUpdates: true, autoApplySkillGroups: false, healthCheckSchedule: "daily", autoRepair: false });
+  const [aiSettings, setAiSettings] = useState<AISettingsViewModel>(defaultAISettings);
+  const [aiPreset, setAiPreset] = useState<AiPreset>("none");
   const [appInfo, setAppInfo] = useState<AppInfoViewModel | null>(null);
   const [saving, setSaving] = useState(false);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
 
   useEffect(() => {
     setBindingDiag(getWailsBindingDiagnostics());
+    let cancelled = false;
     async function loadSettings() {
       try {
-        const api = selectApi();
-        const [general, automation, ai, info] = await Promise.all([api.getGeneralSettings(), api.getAutomationSettings(), api.getAISettings(), api.getAppInfoFull()]);
-        setGeneralSettings(general);
-        setAutomationSettings(automation);
-        setAiSettings(ai);
-        setAppInfo(info);
-      } catch {
-        // 静默处理
+        const api = await waitForApi();
+        const [generalRes, automationRes, aiRes, infoRes] = await Promise.allSettled([
+          api.getGeneralSettings(),
+          api.getAutomationSettings(),
+          api.getAISettings(),
+          api.getAppInfoFull(),
+        ]);
+        if (cancelled) return;
+
+        const errors: string[] = [];
+        if (generalRes.status === "fulfilled") {
+          setGeneralSettings(generalRes.value);
+        } else {
+          errors.push("通用设置");
+        }
+        if (automationRes.status === "fulfilled") {
+          setAutomationSettings(automationRes.value);
+        } else {
+          errors.push("自动化设置");
+        }
+        if (aiRes.status === "fulfilled") {
+          setAiSettings(aiRes.value);
+          setAiPreset(getPresetFromSettings(aiRes.value));
+        } else {
+          setAiSettings(defaultAISettings);
+          setAiPreset("none");
+          errors.push("AI 设置");
+        }
+        if (infoRes.status === "fulfilled") {
+          setAppInfo(infoRes.value);
+        } else {
+          errors.push("应用信息");
+        }
+        setSettingsError(errors.length > 0 ? `部分设置加载失败：${errors.join("、")}` : null);
+      } catch (err) {
+        if (!cancelled) {
+          setSettingsError(err instanceof Error ? err.message : String(err));
+        }
       }
     }
-    loadSettings();
+    void loadSettings();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const inWails = isRunningInWails();
@@ -74,7 +111,7 @@ export function SettingsPage({ diagnostics, onRefresh }: SettingsPageProps) {
     if (!generalSettings) return;
     setSaving(true);
     try {
-      const api = selectApi();
+      const api = await waitForApi();
       await api.saveGeneralSettings(generalSettings);
     } catch {
       // 静默处理
@@ -88,7 +125,7 @@ export function SettingsPage({ diagnostics, onRefresh }: SettingsPageProps) {
     if (!automationSettings) return;
     setSaving(true);
     try {
-      const api = selectApi();
+      const api = await waitForApi();
       await api.saveAutomationSettings(automationSettings);
     } catch {
       // 静默处理
@@ -99,10 +136,9 @@ export function SettingsPage({ diagnostics, onRefresh }: SettingsPageProps) {
 
   /** 保存 AI 设置 */
   const handleSaveAI = async () => {
-    if (!aiSettings) return;
     setSaving(true);
     try {
-      const api = selectApi();
+      const api = await waitForApi();
       await api.saveAISettings(aiSettings);
     } catch {
       // 静默处理
@@ -138,7 +174,7 @@ export function SettingsPage({ diagnostics, onRefresh }: SettingsPageProps) {
       </div>
 
       {/* General Settings */}
-      {activeTab === "general" && generalSettings && (
+      {activeTab === "general" && (
         <article className="bg-surface rounded-panel shadow-panel p-6">
           <h2 className="font-display text-xl font-semibold text-ink mb-4">通用设置</h2>
           <div className="flex flex-col gap-4">
@@ -181,54 +217,112 @@ export function SettingsPage({ diagnostics, onRefresh }: SettingsPageProps) {
       )}
 
       {/* AI Settings */}
-      {activeTab === "ai" && aiSettings && (
+      {activeTab === "ai" && (
         <article className="bg-surface rounded-panel shadow-panel p-6">
-          <h2 className="font-display text-xl font-semibold text-ink mb-4">AI 配置</h2>
-          <p className="text-sm text-ink-soft mb-4">配置 AI 助手使用的 LLM 提供商，启用后将使用真实 AI 进行技能规划和分析。</p>
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div>
+              <h2 className="font-display text-xl font-semibold text-ink">AI 配置</h2>
+              <p className="text-sm text-ink-soft">配置 AI 助手使用的 LLM 供应商、API Key 和模型。</p>
+            </div>
+            <StatusBadge tone={inWails ? "stable" : "attention"} label={inWails ? "Wails 已连接" : "示例模式"} />
+          </div>
+          {settingsError && (
+            <div className="mb-4 rounded-card border border-attention-ink/20 bg-attention-bg/40 px-4 py-3 text-sm text-ink">
+              {settingsError}
+            </div>
+          )}
           <div className="flex flex-col gap-4">
             <div>
-              <label className="block text-sm font-medium text-ink mb-1">AI 提供商</label>
-              <select value={aiSettings.provider} onChange={(e) => setAiSettings({ ...aiSettings, provider: e.target.value })} className="bg-surface-warm rounded-card px-4 py-2 text-sm text-ink border border-border focus:outline-none focus:ring-1 focus:ring-accent w-full">
-                <option value="none">无（使用本地回退方案）</option>
-                <option value="openai">OpenAI</option>
-                <option value="anthropic">Anthropic</option>
+              <label htmlFor="ai-provider-preset" className="block text-sm font-medium text-ink mb-1">供应商预设</label>
+              <select
+                id="ai-provider-preset"
+                value={aiPreset}
+                onChange={(e) => {
+                  const nextPreset = e.target.value as AiPreset;
+                  setAiPreset(nextPreset);
+                  setAiSettings((current) => applyPreset(nextPreset, current));
+                }}
+                className="bg-surface-warm rounded-card px-4 py-2 text-sm text-ink border border-border focus:outline-none focus:ring-1 focus:ring-accent w-full"
+              >
+                {aiProviderPresets.map((preset) => (
+                  <option key={preset.value} value={preset.value}>{preset.label}</option>
+                ))}
               </select>
-              <p className="text-xs text-ink-muted mt-1">选择"无"时，AI 助手将使用静态回退方案，不调用外部 API。</p>
+              <p className="text-xs text-ink-muted mt-1">常见兼容网关会自动填入可用的 Base URL 和模型名。</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-ink mb-1">API Key</label>
+              <label htmlFor="ai-api-key" className="block text-sm font-medium text-ink mb-1">API Key</label>
               <input
+                id="ai-api-key"
                 type="password"
                 value={aiSettings.apiKey}
                 onChange={(e) => setAiSettings({ ...aiSettings, apiKey: e.target.value })}
-                placeholder={aiSettings.provider === "openai" ? "sk-..." : aiSettings.provider === "anthropic" ? "sk-ant-..." : "选择提供商后输入 API Key"}
+                placeholder={
+                  aiSettings.provider === "openai"
+                    ? "sk-..."
+                    : aiSettings.provider === "anthropic"
+                      ? "sk-ant-..."
+                      : aiSettings.provider === "gemini"
+                        ? "AIza..."
+                        : aiSettings.provider === "openai-compatible"
+                          ? "兼容网关 API Key"
+                          : "选择供应商后输入 API Key"
+                }
                 className="bg-surface-warm rounded-card px-4 py-2 text-sm text-ink border border-border focus:outline-none focus:ring-1 focus:ring-accent w-full"
                 disabled={aiSettings.provider === "none"}
               />
               <p className="text-xs text-ink-muted mt-1">API Key 仅存储在本地，不会上传到任何服务器。</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-ink mb-1">模型</label>
+              <label htmlFor="ai-model-preset" className="block text-sm font-medium text-ink mb-1">模型预设</label>
+              <select
+                id="ai-model-preset"
+                value={getModelOptions(aiPreset).includes(aiSettings.model) ? aiSettings.model : "__custom__"}
+                onChange={(e) => {
+                  if (e.target.value !== "__custom__") {
+                    setAiSettings({ ...aiSettings, model: e.target.value });
+                  }
+                }}
+                className="bg-surface-warm rounded-card px-4 py-2 text-sm text-ink border border-border focus:outline-none focus:ring-1 focus:ring-accent w-full"
+                disabled={aiPreset === "none"}
+              >
+                <option value="__custom__">自定义模型</option>
+                {getModelOptions(aiPreset).map((model) => (
+                  <option key={model} value={model}>{model}</option>
+                ))}
+              </select>
               <input
+                id="ai-model-custom"
                 type="text"
                 value={aiSettings.model}
                 onChange={(e) => setAiSettings({ ...aiSettings, model: e.target.value })}
-                placeholder={aiSettings.provider === "openai" ? "gpt-4o" : aiSettings.provider === "anthropic" ? "claude-sonnet-4-20250514" : "选择提供商后输入模型名称"}
-                className="bg-surface-warm rounded-card px-4 py-2 text-sm text-ink border border-border focus:outline-none focus:ring-1 focus:ring-accent w-full"
+                placeholder={
+                  aiSettings.provider === "openai"
+                    ? "gpt-4o"
+                    : aiSettings.provider === "anthropic"
+                      ? "claude-sonnet-4-20250514"
+                      : aiSettings.provider === "gemini"
+                        ? "gemini-2.0-flash"
+                        : aiSettings.provider === "openai-compatible"
+                          ? "gpt-4o-mini"
+                          : "选择供应商后输入模型名称"
+                }
+                className="mt-2 bg-surface-warm rounded-card px-4 py-2 text-sm text-ink border border-border focus:outline-none focus:ring-1 focus:ring-accent w-full"
                 disabled={aiSettings.provider === "none"}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-ink mb-1">自定义 Base URL（可选）</label>
+              <label htmlFor="ai-base-url" className="block text-sm font-medium text-ink mb-1">自定义 Base URL（可选）</label>
               <input
+                id="ai-base-url"
                 type="text"
                 value={aiSettings.baseUrl}
                 onChange={(e) => setAiSettings({ ...aiSettings, baseUrl: e.target.value })}
-                placeholder="留空使用官方 API 地址"
+                placeholder={aiSettings.provider === "openai-compatible" ? "https://openrouter.ai/api/v1" : "留空使用官方 API 地址"}
                 className="bg-surface-warm rounded-card px-4 py-2 text-sm text-ink border border-border focus:outline-none focus:ring-1 focus:ring-accent w-full"
                 disabled={aiSettings.provider === "none"}
               />
-              <p className="text-xs text-ink-muted mt-1">如使用代理或自托管服务，可填写自定义 API 地址。</p>
+              <p className="text-xs text-ink-muted mt-1">如使用代理、网关或 OpenAI-Compatible 服务，可填写自定义 API 地址。</p>
             </div>
             <div className="flex justify-end">
               <button type="button" onClick={handleSaveAI} disabled={saving} className="rounded-pill px-5 py-2 text-sm font-medium bg-accent text-white hover:bg-accent-warm transition-colors disabled:opacity-40">

@@ -22,12 +22,12 @@ type DashboardTask struct {
 
 /** 仪表盘视图模型 */
 type DashboardSnapshot struct {
-	Title      string              `json:"title"`
-	Summary    string              `json:"summary"`
-	Spotlight  string              `json:"spotlight"`
+	Title      string               `json:"title"`
+	Summary    string               `json:"summary"`
+	Spotlight  string               `json:"spotlight"`
 	Highlights []DashboardHighlight `json:"highlights"`
-	Tasks      []DashboardTask     `json:"tasks"`
-	Notes      []string            `json:"notes"`
+	Tasks      []DashboardTask      `json:"tasks"`
+	Notes      []string             `json:"notes"`
 }
 
 /** 适配器视图模型 */
@@ -119,16 +119,34 @@ type ProjectViewModel struct {
 }
 
 /** 助手任务视图模型 */
+type AssistantPlanStep struct {
+	Action string `json:"action"`
+	Label  string `json:"label"`
+	Detail string `json:"detail"`
+}
+
+/** 助手解析后的执行动作 */
+type AssistantResolvedAction struct {
+	SkillID     string `json:"skillId"`
+	Version     string `json:"version"`
+	TargetAgent string `json:"targetAgent"`
+	Action      string `json:"action"`
+}
+
+/** 助手任务视图模型 */
 type AssistantTaskViewModel struct {
-	ID             string   `json:"id"`
-	Request        string   `json:"request"`
-	Status         string   `json:"status"`
-	Blocker        string   `json:"blocker,omitempty"`
-	NextStep       string   `json:"nextStep"`
-	Summary        string   `json:"summary"`
-	Recommendation string   `json:"recommendation"`
-	Reason         string   `json:"reason"`
-	Records        []string `json:"records"`
+	ID              string                    `json:"id"`
+	Request         string                    `json:"request"`
+	Status          string                    `json:"status"`
+	Blocker         string                    `json:"blocker,omitempty"`
+	NextStep        string                    `json:"nextStep"`
+	Summary         string                    `json:"summary"`
+	Recommendation  string                    `json:"recommendation"`
+	Reason          string                    `json:"reason"`
+	Records         []string                  `json:"records"`
+	PlanJSON        string                    `json:"planJson"`
+	PlanSteps       []AssistantPlanStep       `json:"planSteps"`
+	ResolvedActions []AssistantResolvedAction `json:"resolvedActions"`
 }
 
 /** 诊断条目视图模型 */
@@ -141,12 +159,12 @@ type DiagnosticItemViewModel struct {
 
 /** 应用快照，包含所有视图模型 */
 type AppSnapshot struct {
-	Dashboard   DashboardSnapshot       `json:"dashboard"`
-	Agents      []AgentViewModel        `json:"agents"`
-	Skills      []SkillViewModel        `json:"skills"`
-	Store       []StoreItemViewModel    `json:"store"`
-	Projects    []ProjectViewModel      `json:"projects"`
-	Assistant   AssistantTaskViewModel  `json:"assistant"`
+	Dashboard   DashboardSnapshot         `json:"dashboard"`
+	Agents      []AgentViewModel          `json:"agents"`
+	Skills      []SkillViewModel          `json:"skills"`
+	Store       []StoreItemViewModel      `json:"store"`
+	Projects    []ProjectViewModel        `json:"projects"`
+	Assistant   AssistantTaskViewModel    `json:"assistant"`
 	Diagnostics []DiagnosticItemViewModel `json:"diagnostics"`
 }
 
@@ -300,6 +318,20 @@ type AISettingsViewModel struct {
 	Model    string `json:"model"`
 	APIKey   string `json:"apiKey"`
 	BaseURL  string `json:"baseUrl"`
+}
+
+/** AI 聊天消息视图模型 */
+type AssistantChatMessageViewModel struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+/** AI 聊天回复视图模型 */
+type AssistantChatResponseViewModel struct {
+	Reply    string `json:"reply"`
+	Provider string `json:"provider"`
+	Model    string `json:"model"`
+	Error    string `json:"error,omitempty"`
 }
 
 /** 日志条目视图模型 */

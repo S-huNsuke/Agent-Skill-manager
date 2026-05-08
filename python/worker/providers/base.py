@@ -2,14 +2,14 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 
-@dataclass(slots=True)
+@dataclass
 class ProviderRequest:
     """LLM 调用请求"""
     system_prompt: str
     user_prompt: str
 
 
-@dataclass(slots=True)
+@dataclass
 class ProviderResponse:
     """LLM 调用响应"""
     text: str

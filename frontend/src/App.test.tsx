@@ -1,5 +1,14 @@
 import { render, screen } from "@testing-library/react";
+import { vi } from "vitest";
 import App from "./App";
+
+vi.mock("./lib/api", async () => {
+  const actual = await vi.importActual<typeof import("./lib/api")>("./lib/api");
+  return {
+    ...actual,
+    waitForApi: vi.fn(async () => actual.mockApi),
+  };
+});
 
 describe("App routes", () => {
   it("renders the primary navigation and main application structure", async () => {

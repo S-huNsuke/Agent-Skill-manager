@@ -4,7 +4,7 @@ import json
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from providers.base import BaseProvider
+    from worker.providers.base import BaseProvider
 
 _SYSTEM_PROMPT = """你是一个技能依赖解析助手。你会收到一个执行计划和当前环境状态，需要解析出具体的操作步骤。
 
@@ -48,7 +48,7 @@ def resolve_plan(
 
     import asyncio
 
-    from providers.base import ProviderRequest
+    from worker.providers.base import ProviderRequest
 
     env_state = {
         "has_artifact": has_artifact,

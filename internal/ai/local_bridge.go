@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"time"
 )
@@ -14,6 +15,8 @@ type LocalBridge struct {
 	PythonPath string
 	Provider   string
 	Model      string
+	APIKey     string
+	BaseURL    string
 	WorkerDir  string
 	Timeout    time.Duration
 }
@@ -30,6 +33,8 @@ func NewLocalBridge(pythonPath string, provider string, model string) *LocalBrid
 		PythonPath: pythonPath,
 		Provider:   provider,
 		Model:      model,
+		APIKey:     "",
+		BaseURL:    "",
 		WorkerDir:  "", // 将在 Run 时设置
 		Timeout:    30 * time.Second,
 	}
@@ -60,8 +65,27 @@ func (b *LocalBridge) Run(ctx context.Context, req WorkerRequest) (WorkerRespons
 
 	cmd := exec.CommandContext(ctx, b.PythonPath, args...)
 	cmd.Stdin = bytes.NewReader(payloadBytes)
+	env := append([]string{}, os.Environ()...)
+	if b.Provider != "" {
+		env = append(env, "ASM_AI_PROVIDER="+b.Provider)
+	}
+	if b.Model != "" {
+		env = append(env, "ASM_AI_MODEL="+b.Model)
+	}
+	if b.APIKey != "" {
+		env = append(env,
+			"ASM_AI_API_KEY="+b.APIKey,
+			"OPENAI_API_KEY="+b.APIKey,
+			"ANTHROPIC_API_KEY="+b.APIKey,
+			"GEMINI_API_KEY="+b.APIKey,
+		)
+	}
+	if b.BaseURL != "" {
+		env = append(env, "ASM_AI_BASE_URL="+b.BaseURL)
+	}
+	cmd.Env = env
 
-	// 设置工作目录为 python/worker，这样模块导入才能正常工作
+	// 设置工作目录为 python，这样模块导入 worker.main 才能正常工作
 	if b.WorkerDir != "" {
 		cmd.Dir = b.WorkerDir
 	}
@@ -92,15 +116,27 @@ func (b *LocalBridge) Run(ctx context.Context, req WorkerRequest) (WorkerRespons
 		}, fmt.Errorf("unmarshal worker response: %w", err)
 	}
 
+	if response.Status != "ok" {
+		errMsg := ""
+		if response.Data != nil {
+			errMsg, _ = response.Data["error"].(string)
+		}
+		if errMsg == "" {
+			errMsg = "worker returned non-ok status"
+		}
+		return response, fmt.Errorf("%s", errMsg)
+	}
+
 	return response, nil
 }
 
-/** 动态更新 Bridge 的 Provider 和 Model 配置 */
-func (b *LocalBridge) UpdateConfig(provider string, model string) {
-	if provider != "" {
-		b.Provider = provider
+/** 动态更新 Bridge 的 Provider、Model 和 API 配置 */
+func (b *LocalBridge) UpdateConfig(provider string, model string, apiKey string, baseURL string) {
+	if provider == "" {
+		provider = "none"
 	}
-	if model != "" {
-		b.Model = model
-	}
+	b.Provider = provider
+	b.Model = model
+	b.APIKey = apiKey
+	b.BaseURL = baseURL
 }

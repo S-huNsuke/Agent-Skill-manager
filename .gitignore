@@ -6,6 +6,9 @@
 
 # Build output
 build/bin/
+build/tmp/
+frontend/dist/
+frontend/tsconfig.tsbuildinfo
 
 # Dependencies
 node_modules/
@@ -52,6 +55,7 @@ npm-debug.log*
 pnpm-debug.log*
 
 # Test
+test-screenshots/
 
 # Data
 *.db

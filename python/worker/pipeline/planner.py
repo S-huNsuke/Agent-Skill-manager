@@ -4,7 +4,7 @@ import json
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from providers.base import BaseProvider
+    from worker.providers.base import BaseProvider
 
 _FALLBACK_STEPS = [
     {"action": "recommend", "label": "推荐技能", "detail": "根据目标推荐合适的技能"},
@@ -45,7 +45,7 @@ def make_plan(goal: str, context: dict | None = None, provider: BaseProvider | N
 
     import asyncio
 
-    from providers.base import ProviderRequest
+    from worker.providers.base import ProviderRequest
 
     # 构建包含上下文的用户提示
     user_prompt = f"目标：{goal}"

@@ -1,8 +1,12 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
+	"strings"
 	"testing"
+
+	"github.com/caojun/agent-skills-manager/internal/ai"
 )
 
 /** 验证 GetDashboard 返回非空仪表盘快照 */
@@ -112,5 +116,125 @@ func TestGetSnapshotAggregatesAllViewModels(t *testing.T) {
 	}
 	if snapshot.Assistant.ID == "" {
 		t.Error("snapshot assistant id must not be empty")
+	}
+}
+
+type fakeAssistantBridge struct {
+	responses map[string]ai.WorkerResponse
+	lastReq   ai.WorkerRequest
+}
+
+func (f *fakeAssistantBridge) Run(_ context.Context, req ai.WorkerRequest) (ai.WorkerResponse, error) {
+	f.lastReq = req
+	if resp, ok := f.responses[req.Action]; ok {
+		return resp, nil
+	}
+	return ai.WorkerResponse{Status: "ok", Data: map[string]any{}}, nil
+}
+
+func TestSubmitGoalStoresStructuredPlan(t *testing.T) {
+	bridge := &fakeAssistantBridge{
+		responses: map[string]ai.WorkerResponse{
+			"plan": {
+				Status: "ok",
+				Data: map[string]any{
+					"goal": "install a skill",
+					"steps": []any{
+						map[string]any{"action": "recommend", "label": "推荐技能", "detail": "推荐适合的技能"},
+						map[string]any{"action": "execute", "label": "执行安装", "detail": "执行技能安装"},
+					},
+					"revision": 1,
+				},
+			},
+		},
+	}
+
+	app := &App{Name: defaultAppName, Version: defaultAppVersion, bridge: bridge}
+	task := app.SubmitGoal("install a skill")
+
+	if task.PlanJSON == "" {
+		t.Fatal("plan json must not be empty")
+	}
+	if len(task.PlanSteps) != 2 {
+		t.Fatalf("plan steps mismatch: got %d want 2", len(task.PlanSteps))
+	}
+	if len(task.ResolvedActions) != 0 {
+		t.Fatalf("resolved actions mismatch: got %d want 0", len(task.ResolvedActions))
+	}
+}
+
+func TestChatAssistantReturnsWorkerReply(t *testing.T) {
+	bridge := &fakeAssistantBridge{
+		responses: map[string]ai.WorkerResponse{
+			"chat": {
+				Status: "ok",
+				Data: map[string]any{
+					"reply": "你好，我是 AI 助手。",
+				},
+			},
+		},
+	}
+
+	app := &App{Name: defaultAppName, Version: defaultAppVersion, bridge: bridge}
+	response := app.ChatAssistant("你好", []AssistantChatMessageViewModel{
+		{Role: "user", Content: "之前的问题"},
+	})
+
+	if response.Reply != "你好，我是 AI 助手。" {
+		t.Fatalf("reply mismatch: got %q", response.Reply)
+	}
+	if bridge.lastReq.Action != "chat" {
+		t.Fatalf("worker action mismatch: got %q want chat", bridge.lastReq.Action)
+	}
+}
+
+func TestChatAssistantStripsReasoningFromWorkerReply(t *testing.T) {
+	bridge := &fakeAssistantBridge{
+		responses: map[string]ai.WorkerResponse{
+			"chat": {
+				Status: "ok",
+				Data: map[string]any{
+					"reply": "<think>internal reasoning</think>\n最终答案：你好，我是 AI 助手。",
+				},
+			},
+		},
+	}
+
+	app := &App{Name: defaultAppName, Version: defaultAppVersion, bridge: bridge}
+	response := app.ChatAssistant("你好", nil)
+
+	if strings.Contains(response.Reply, "internal reasoning") || strings.Contains(response.Reply, "<think>") {
+		t.Fatalf("reply leaked reasoning: %q", response.Reply)
+	}
+	if response.Reply != "你好，我是 AI 助手。" {
+		t.Fatalf("reply mismatch: got %q", response.Reply)
+	}
+}
+
+func TestSaveAISettingsUpdatesBridgeConfig(t *testing.T) {
+	bridge := ai.NewLocalBridge("python3", "none", "")
+	app := &App{Name: defaultAppName, Version: defaultAppVersion, bridge: bridge}
+
+	result := app.SaveAISettings(AISettingsViewModel{
+		Provider: "openai-compatible",
+		Model:    "gpt-4.1-mini",
+		APIKey:   "secret-key",
+		BaseURL:  "https://example.invalid/v1",
+	})
+
+	if result != "ok" {
+		t.Fatalf("save result mismatch: got %q want %q", result, "ok")
+	}
+	if bridge.Provider != "openai-compatible" {
+		t.Fatalf("provider mismatch: got %q want %q", bridge.Provider, "openai-compatible")
+	}
+	if bridge.Model != "gpt-4.1-mini" {
+		t.Fatalf("model mismatch: got %q want %q", bridge.Model, "gpt-4.1-mini")
+	}
+	if bridge.APIKey != "secret-key" {
+		t.Fatalf("api key mismatch: got %q want %q", bridge.APIKey, "secret-key")
+	}
+	if bridge.BaseURL != "https://example.invalid/v1" {
+		t.Fatalf("base url mismatch: got %q want %q", bridge.BaseURL, "https://example.invalid/v1")
 	}
 }
