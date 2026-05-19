@@ -1,4 +1,4 @@
-package codex
+package hermes
 
 import (
 	"os"
@@ -17,32 +17,32 @@ type Config struct {
 	Now                 func() time.Time
 }
 
+/** 创建 Hermes 代理适配器，同时扫描 ~/.hermes 和 ~/.agents 两个安装路径 */
 func NewAdapter(config Config) agents.Adapter {
 	return agents.NewFilesystemAdapter(agents.LocalAdapterConfig{
-		AgentID:             "codex",
-		DisplayName:         "Codex",
-		DefaultInstallPaths: withDefaultInstallPaths(config.DefaultInstallPaths, []string{".codex", ".codex/superpowers"}),
+		AgentID:             "hermes",
+		DisplayName:         "Hermes",
+		DefaultInstallPaths: withDefaultInstallPaths(config.DefaultInstallPaths),
 		OverrideInstallPath: config.OverrideInstallPath,
 		SkillsRelativePath:  withDefault(config.SkillsRelativePath, "skills"),
-		ExecutableNames:     []string{"codex"},
+		ExecutableNames:     []string{"hermes"},
 		LookPath:            withLookPath(config.LookPath),
 		Now:                 config.Now,
 	})
 }
 
-func withDefaultInstallPaths(paths []string, dirs []string) []string {
+func withDefaultInstallPaths(paths []string) []string {
 	if paths != nil {
 		return paths
 	}
-	result := make([]string, 0, len(dirs))
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return result
+		return []string{}
 	}
-	for _, dir := range dirs {
-		result = append(result, filepath.Join(home, dir))
+	return []string{
+		filepath.Join(home, ".hermes"),
+		filepath.Join(home, ".agents"),
 	}
-	return result
 }
 
 func withDefault(value string, fallback string) string {

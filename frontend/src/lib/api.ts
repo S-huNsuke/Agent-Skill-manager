@@ -1,4 +1,4 @@
-import { mockSnapshot } from "./mocks";
+import { mockSnapshot } from "./mockData";
 import type {
   ActivityItem,
   AgentDetailViewModel,
@@ -26,7 +26,7 @@ import type {
   SystemHealthStatus,
   TaskHistoryItem,
   ReconcilePlanViewModel,
-} from "./mocks";
+} from "./types";
 
 export interface FrontendApi {
   getSnapshot(): Promise<AppSnapshot>;
@@ -50,6 +50,7 @@ export interface FrontendApi {
   repairAgent(agentID: string): Promise<string>;
   getAgentDetail(agentID: string): Promise<AgentDetailViewModel>;
   explainSkill(agentID: string, skillName: string): Promise<SkillExplanationViewModel>;
+  generateSkillExplanation(agentID: string, skillName: string): Promise<string>;
   getRecentActivities(limit: number): Promise<ActivityItem[]>;
   getSystemHealthStatus(): Promise<SystemHealthStatus>;
   getRecommendedActions(): Promise<RecommendedAction[]>;
@@ -84,6 +85,7 @@ export interface FrontendApi {
   getAISettings(): Promise<AISettingsViewModel>;
   saveAISettings(settings: AISettingsViewModel): Promise<string>;
   getLogs(level: string, limit: number): Promise<LogEntryViewModel[]>;
+  exportDiagnostics(): Promise<string>;
   batchUpdateSkills(agentID: string, skillNames: string): Promise<string>;
   batchUninstallSkills(agentID: string, skillNames: string): Promise<string>;
 }
@@ -151,7 +153,8 @@ export const mockApi: FrontendApi = {
   openInFinder: () => resolved("ok"),
   repairAgent: () => resolved("ok"),
   getAgentDetail: (agentID: string) => resolved({ id: agentID, displayName: "", found: false, installPath: "", installPaths: [], skillsPath: "", skillsPaths: [], health: "", lastScannedAt: "", lastErrorCode: "", lastErrorMessage: "", skillCount: 0, skillNames: [] }),
-  explainSkill: (agentID: string, skillName: string) => resolved({ agentId: agentID, agentName: "", skillName, found: false, skillPath: "", readmeFile: "", readmeContent: "", files: [] }),
+  explainSkill: (agentID: string, skillName: string) => resolved({ agentId: agentID, agentName: "", skillName, found: false, skillPath: "", readmeFile: "", readmeContent: "", files: [], aiExplanation: "" }),
+  generateSkillExplanation: () => resolved(""),
   getRecentActivities: () => resolved([]),
   getSystemHealthStatus: () => resolved({ overallStatus: "ok", agentHealth: [], diskSpace: { totalGb: 0, freeGb: 0, usedPct: 0 }, checkedAt: "" }),
   getRecommendedActions: () => resolved([]),
@@ -161,7 +164,7 @@ export const mockApi: FrontendApi = {
   syncAllSources: () => resolved([]),
   addCatalogSource: (name: string, url: string) => resolved({ id: "", name, url, isBuiltin: false, enabled: true, lastSyncedAt: "", lastSyncStatus: "", skillCount: 0 }),
   removeCatalogSource: () => resolved("ok"),
-  explainStoreSkill: (_sourceName: string, skillName: string) => resolved({ agentId: "store", agentName: "", skillName, found: true, skillPath: "", readmeFile: "", readmeContent: "这是一个 AI 代理技能，用于增强代理的能力。", files: [] }),
+  explainStoreSkill: (_sourceName: string, skillName: string) => resolved({ agentId: "store", agentName: "", skillName, found: true, skillPath: "", readmeFile: "", readmeContent: "这是一个 AI 代理技能，用于增强代理的能力。", files: [], aiExplanation: "这个技能可以帮助 AI 代理完成特定任务，提升代理的能力范围。" }),
   getSkillGroups: () => resolved([]),
   createSkillGroup: (name: string, description: string, skillNames: string, agentID: string) => resolved({ id: "", name, description, sourceType: "manual", skillCount: 0, projectCount: 0, createdAt: "", skillNames: [], boundAgentId: agentID, boundAgentName: "" }),
   deleteSkillGroup: () => resolved("ok"),
@@ -185,7 +188,8 @@ export const mockApi: FrontendApi = {
   saveAutomationSettings: () => resolved("ok"),
   getAISettings: () => resolved({ provider: "none", model: "", apiKey: "", baseUrl: "" }),
   saveAISettings: () => resolved("ok"),
-  getLogs: () => resolved([]),
+  getLogs: (_level: string, _limit: number) => resolved([]),
+  exportDiagnostics: () => resolved("{}"),
   batchUpdateSkills: () => resolved("ok"),
   batchUninstallSkills: () => resolved("ok"),
 };
@@ -237,7 +241,7 @@ export const wailsApi: FrontendApi = {
   getProjects: () => wailsCall<ProjectViewModel[]>("GetProjects"),
   getAssistantTask: () => wailsCall<AssistantTaskViewModel>("GetAssistantTask"),
   getDiagnostics: () => wailsCall<DiagnosticItemViewModel[]>("GetDiagnostics"),
-  refreshSnapshot: () => wailsCall<AppSnapshot>("RefreshSnapshot"),
+  refreshSnapshot: () => wailsCall<AppSnapshot>("GetSnapshot"),
   installSkill: (agentID: string, skillName: string, sourcePath: string) => wailsCall<string>("InstallSkill", agentID, skillName, sourcePath),
   uninstallSkill: (agentID: string, skillName: string) => wailsCall<string>("UninstallSkill", agentID, skillName),
   updateSkill: (agentID: string, skillName: string, sourcePath: string) => wailsCall<string>("UpdateSkill", agentID, skillName, sourcePath),
@@ -250,6 +254,7 @@ export const wailsApi: FrontendApi = {
   repairAgent: (agentID: string) => wailsCall<string>("RepairAgent", agentID),
   getAgentDetail: (agentID: string) => wailsCall<AgentDetailViewModel>("GetAgentDetail", agentID),
   explainSkill: (agentID: string, skillName: string) => wailsCall<SkillExplanationViewModel>("ExplainSkill", agentID, skillName),
+  generateSkillExplanation: (agentID: string, skillName: string) => wailsCall<string>("GenerateSkillExplanation", agentID, skillName),
   getRecentActivities: (limit: number) => wailsCall<ActivityItem[]>("GetRecentActivities", limit),
   getSystemHealthStatus: () => wailsCall<SystemHealthStatus>("GetSystemHealthStatus"),
   getRecommendedActions: () => wailsCall<RecommendedAction[]>("GetRecommendedActions"),
@@ -284,6 +289,7 @@ export const wailsApi: FrontendApi = {
   getAISettings: () => wailsCall<AISettingsViewModel>("GetAISettings"),
   saveAISettings: (settings: AISettingsViewModel) => wailsCall<string>("SaveAISettings", settings),
   getLogs: (level: string, limit: number) => wailsCall<LogEntryViewModel[]>("GetLogs", level, limit),
+  exportDiagnostics: () => wailsCall<string>("ExportDiagnostics"),
   batchUpdateSkills: (agentID: string, skillNames: string) => wailsCall<string>("BatchUpdateSkills", agentID, skillNames),
   batchUninstallSkills: (agentID: string, skillNames: string) => wailsCall<string>("BatchUninstallSkills", agentID, skillNames),
 };

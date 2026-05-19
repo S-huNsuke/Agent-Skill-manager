@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
-import type { StoreItemViewModel, CatalogSourceViewModel, SyncResultViewModel, AgentViewModel, SkillExplanationViewModel } from "../../lib/mocks";
+import type { StoreItemViewModel, CatalogSourceViewModel, SyncResultViewModel, AgentViewModel, SkillExplanationViewModel } from "../../lib/types";
 import { selectApi } from "../../lib/api";
 import { SearchBar } from "../../components/SearchBar";
 import { FilterPanel } from "../../components/FilterPanel";
@@ -71,7 +71,6 @@ export function StorePage({ items, agents, onRefresh, onAction }: StorePageProps
       const api = selectApi();
       const result = await api.getCatalogSources();
       setSources(result);
-      setShowSources(true);
     } catch {
       setSources([]);
     }
@@ -181,6 +180,7 @@ export function StorePage({ items, agents, onRefresh, onAction }: StorePageProps
         readmeFile: "",
         readmeContent: "",
         files: [],
+        aiExplanation: "",
       });
     } finally {
       setExplainLoading(false);
@@ -645,10 +645,17 @@ export function StorePage({ items, agents, onRefresh, onAction }: StorePageProps
             </div>
           ) : explainResult?.found ? (
             <>
-              <div className="bg-accent-glow/30 rounded-card p-4">
-                <p className="text-sm font-medium text-accent mb-1">💡 技能解读</p>
-                <p className="text-sm text-ink">{explainItem?.summary}</p>
-              </div>
+              {explainResult.aiExplanation ? (
+                <div className="bg-accent-glow/30 rounded-card p-4">
+                  <p className="text-sm font-medium text-accent mb-1">💡 AI 解读</p>
+                  <p className="text-sm text-ink">{explainResult.aiExplanation}</p>
+                </div>
+              ) : (
+                <div className="bg-accent-glow/30 rounded-card p-4">
+                  <p className="text-sm font-medium text-accent mb-1">💡 技能简介</p>
+                  <p className="text-sm text-ink">{explainItem?.summary || "暂无简介"}</p>
+                </div>
+              )}
 
               {explainResult.readmeContent && (
                 <div>

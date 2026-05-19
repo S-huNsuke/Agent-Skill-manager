@@ -69,6 +69,7 @@ type SkillExplanationViewModel struct {
 	ReadmeFile    string   `json:"readmeFile"`
 	ReadmeContent string   `json:"readmeContent"`
 	Files         []string `json:"files"`
+	AiExplanation string   `json:"aiExplanation"`
 }
 
 /** 技能视图模型 */

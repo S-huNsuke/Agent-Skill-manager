@@ -134,10 +134,8 @@ func TestLocalBridgeUpdateConfigOverwritesPreviousValues(t *testing.T) {
 	}
 }
 
-/** 验证 LocalBridge 会把 worker 配置通过环境变量和工作目录传给子进程 */
+/** 验证 LocalBridge 会通过 stdin 传递敏感 worker 配置，并清理子进程环境中的密钥 */
 func TestLocalBridgePassesWorkerConfigToChildProcess(t *testing.T) {
-	t.Parallel()
-
 	dir := t.TempDir()
 	workerDir := filepath.Join(dir, "python")
 	if err := os.MkdirAll(workerDir, 0o755); err != nil {
@@ -145,12 +143,20 @@ func TestLocalBridgePassesWorkerConfigToChildProcess(t *testing.T) {
 	}
 	scriptPath := filepath.Join(dir, "fake-python")
 	script := `#!/bin/sh
-printf '{"status":"ok","data":{"provider":"%s","api_key":"%s","base_url":"%s","model":"%s","arg1":"%s","arg2":"%s","arg3":"%s","arg4":"%s","cwd":"%s"}}\n' \
-"$ASM_AI_PROVIDER" "$ASM_AI_API_KEY" "$ASM_AI_BASE_URL" "$ASM_AI_MODEL" "$1" "$2" "$3" "$4" "$PWD"
+payload="$(cat)"
+printf '{"status":"ok","data":{"asm_provider":"%s","asm_model":"%s","asm_api_key":"%s","openai_api_key":"%s","anthropic_api_key":"%s","gemini_api_key":"%s","payload":%s,"arg1":"%s","arg2":"%s","arg3":"%s","arg4":"%s","cwd":"%s"}}\n' \
+"$ASM_AI_PROVIDER" "$ASM_AI_MODEL" "$ASM_AI_API_KEY" "$OPENAI_API_KEY" "$ANTHROPIC_API_KEY" "$GEMINI_API_KEY" "$payload" "$1" "$2" "$3" "$4" "$PWD"
 `
 	if err := os.WriteFile(scriptPath, []byte(script), 0o755); err != nil {
 		t.Fatalf("write fake python: %v", err)
 	}
+
+	t.Setenv("ASM_AI_PROVIDER", "parent-provider")
+	t.Setenv("ASM_AI_MODEL", "parent-model")
+	t.Setenv("ASM_AI_API_KEY", "parent-secret")
+	t.Setenv("OPENAI_API_KEY", "parent-openai-secret")
+	t.Setenv("ANTHROPIC_API_KEY", "parent-anthropic-secret")
+	t.Setenv("GEMINI_API_KEY", "parent-gemini-secret")
 
 	bridge := &LocalBridge{
 		PythonPath: scriptPath,
@@ -174,17 +180,23 @@ printf '{"status":"ok","data":{"provider":"%s","api_key":"%s","base_url":"%s","m
 	}
 
 	data := resp.Data
-	if got := data["provider"]; got != "openai-compatible" {
-		t.Fatalf("provider mismatch: got %v want %q", got, "openai-compatible")
+	if got := data["asm_provider"]; got != "" {
+		t.Fatalf("asm provider leaked into child env: got %v want empty", got)
 	}
-	if got := data["api_key"]; got != "secret-key" {
-		t.Fatalf("api key mismatch: got %v want %q", got, "secret-key")
+	if got := data["asm_model"]; got != "" {
+		t.Fatalf("asm model leaked into child env: got %v want empty", got)
 	}
-	if got := data["base_url"]; got != "https://example.invalid/v1" {
-		t.Fatalf("base url mismatch: got %v want %q", got, "https://example.invalid/v1")
+	if got := data["asm_api_key"]; got != "" {
+		t.Fatalf("asm api key leaked into child env: got %v want empty", got)
 	}
-	if got := data["model"]; got != "test-model" {
-		t.Fatalf("model mismatch: got %v want %q", got, "test-model")
+	if got := data["openai_api_key"]; got != "" {
+		t.Fatalf("openai api key leaked into child env: got %v want empty", got)
+	}
+	if got := data["anthropic_api_key"]; got != "" {
+		t.Fatalf("anthropic api key leaked into child env: got %v want empty", got)
+	}
+	if got := data["gemini_api_key"]; got != "" {
+		t.Fatalf("gemini api key leaked into child env: got %v want empty", got)
 	}
 	if got := data["arg1"]; got != "-m" {
 		t.Fatalf("arg1 mismatch: got %v want %q", got, "-m")
@@ -197,5 +209,30 @@ printf '{"status":"ok","data":{"provider":"%s","api_key":"%s","base_url":"%s","m
 	realWorkerDir, _ := filepath.EvalSymlinks(workerDir)
 	if realGotCWD != realWorkerDir {
 		t.Fatalf("cwd mismatch: got %v want %q", gotCWD, workerDir)
+	}
+
+	payload, ok := data["payload"].(map[string]any)
+	if !ok {
+		t.Fatalf("payload type mismatch: got %T", data["payload"])
+	}
+	body, ok := payload["payload"].(map[string]any)
+	if !ok {
+		t.Fatalf("worker body type mismatch: got %T", payload["payload"])
+	}
+	config, ok := body["config"].(map[string]any)
+	if !ok {
+		t.Fatalf("worker config type mismatch: got %T", body["config"])
+	}
+	if got := config["provider"]; got != "openai-compatible" {
+		t.Fatalf("provider mismatch: got %v want %q", got, "openai-compatible")
+	}
+	if got := config["model"]; got != "test-model" {
+		t.Fatalf("model mismatch: got %v want %q", got, "test-model")
+	}
+	if got := config["api_key"]; got != "secret-key" {
+		t.Fatalf("api key mismatch: got %v want %q", got, "secret-key")
+	}
+	if got := config["base_url"]; got != "https://example.invalid/v1" {
+		t.Fatalf("base url mismatch: got %v want %q", got, "https://example.invalid/v1")
 	}
 }

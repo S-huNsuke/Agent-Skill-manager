@@ -1,3 +1,5 @@
+# 此 docker-compose.yml 仅用于开发环境和 CI 测试，不用于生产部署。
+# 生产环境请使用官方发布渠道获取预编译二进制文件。
 services:
   agent-skills-manager:
     build:

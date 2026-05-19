@@ -27,34 +27,56 @@ func (a *App) GetDashboard() DashboardSnapshot {
 	healthyCount := 0
 
 	if a.registry != nil {
-		installs, err := a.registry.DiscoverAll(context.Background())
-		if err == nil {
-			seenAgents := make(map[string]bool)
-			for _, install := range installs {
-				if seenAgents[install.AgentID] {
-					if install.Health == agents.HealthReady {
-						skills, skillErr := a.registry.ListInstalledSkills(context.Background(), install)
-						if skillErr == nil {
-							skillCount += len(skills)
-						}
-					}
-					continue
-				}
-				seenAgents[install.AgentID] = true
-
+		installs := a.getCachedInstalls()
+		seenAgents := make(map[string]bool)
+		for _, install := range installs {
+			if seenAgents[install.AgentID] {
 				if install.Health == agents.HealthReady {
-					agentCount++
-					healthyCount++
 					skills, skillErr := a.registry.ListInstalledSkills(context.Background(), install)
 					if skillErr == nil {
 						skillCount += len(skills)
 					}
-				} else if install.Health != agents.HealthNotInstalled {
-					agentCount++
 				}
+				continue
+			}
+			seenAgents[install.AgentID] = true
+
+			if install.Health == agents.HealthReady {
+				agentCount++
+				healthyCount++
+				skills, skillErr := a.registry.ListInstalledSkills(context.Background(), install)
+				if skillErr == nil {
+					skillCount += len(skills)
+				}
+			} else if install.Health != agents.HealthNotInstalled {
+				agentCount++
 			}
 		}
 	}
+
+	taskValue := "0 个任务"
+	taskDetail := "暂无运行中的任务。"
+	taskTone := "muted"
+
+	a.assistantMu.Lock()
+	if a.activeTask != nil {
+		taskValue = fmt.Sprintf("1 个任务")
+		taskDetail = a.activeTask.Summary
+		if taskDetail == "" {
+			taskDetail = a.activeTask.NextStep
+		}
+		switch a.activeTask.Status {
+		case "completed":
+			taskTone = "stable"
+		case "failed", "blocked":
+			taskTone = "critical"
+		case "executing", "planning", "resolving", "verifying", "recovering":
+			taskTone = "attention"
+		default:
+			taskTone = "muted"
+		}
+	}
+	a.assistantMu.Unlock()
 
 	highlights := []DashboardHighlight{
 		{
@@ -66,8 +88,8 @@ func (a *App) GetDashboard() DashboardSnapshot {
 			Detail: "跨所有代理统计", Tone: "stable", Tag: "技能",
 		},
 		{
-			ID: "health", Title: "任务状态", Value: "0 个任务",
-			Detail: "暂无运行中的任务。", Tone: "stable", Tag: "概况",
+			ID: "health", Title: "任务状态", Value: taskValue,
+			Detail: taskDetail, Tone: taskTone, Tag: "概况",
 		},
 	}
 

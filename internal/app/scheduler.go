@@ -28,31 +28,80 @@ func NewScheduler(app *App) *Scheduler {
 	}
 }
 
-/** 根据自动化设置启动对应的定时任务 */
+/** 根据自动化设置启动对应的定时任务，保持未变化任务运行，先启后停避免空窗期 */
 func (s *Scheduler) ApplySettings(settings AutomationSettingsViewModel) {
-	s.StopAll()
+	type desiredTask struct {
+		name     string
+		interval time.Duration
+		fn       func()
+	}
+
+	desired := make([]desiredTask, 0)
 
 	if settings.AutoSyncCatalog {
-		s.Start("sync_catalog", 6*time.Hour, func() {
-			s.app.SyncAllSources()
+		desired = append(desired, desiredTask{
+			name: "sync_catalog", interval: 6 * time.Hour,
+			fn: func() { s.app.SyncAllSources() },
 		})
 	}
 
 	if settings.AutoCheckUpdates {
-		s.Start("check_updates", 24*time.Hour, func() {
-			s.app.SyncAllSources()
+		desired = append(desired, desiredTask{
+			name: "check_updates", interval: 24 * time.Hour,
+			fn: func() { s.app.SyncAllSources() },
 		})
 	}
 
 	switch settings.HealthCheckSchedule {
 	case "daily":
-		s.Start("health_check", 24*time.Hour, func() {
-			s.app.GetDiagnostics()
+		desired = append(desired, desiredTask{
+			name: "health_check", interval: 24 * time.Hour,
+			fn: func() { s.app.GetDiagnostics() },
 		})
 	case "weekly":
-		s.Start("health_check", 7*24*time.Hour, func() {
-			s.app.GetDiagnostics()
+		desired = append(desired, desiredTask{
+			name: "health_check", interval: 7 * 24 * time.Hour,
+			fn: func() { s.app.GetDiagnostics() },
 		})
+	}
+
+	s.mu.Lock()
+	keep := make(map[string]bool)
+	for _, d := range desired {
+		if task, exists := s.tasks[d.name]; exists && task.interval == d.interval {
+			keep[d.name] = true
+		}
+	}
+	s.mu.Unlock()
+
+	for _, d := range desired {
+		if keep[d.name] {
+			continue
+		}
+		s.Stop(d.name)
+		s.Start(d.name, d.interval, d.fn)
+	}
+
+	s.mu.Lock()
+	var toStop []string
+	for name := range s.tasks {
+		if !keep[name] {
+			found := false
+			for _, d := range desired {
+				if d.name == name {
+					found = true
+					break
+				}
+			}
+			if !found {
+				toStop = append(toStop, name)
+			}
+		}
+	}
+	s.mu.Unlock()
+
+	for _, name := range toStop {
+		s.Stop(name)
 	}
 }
 

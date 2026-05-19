@@ -1,4 +1,4 @@
-import type { StatusTone } from "../lib/mocks";
+import type { StatusTone } from "../lib/types";
 
 interface StatusBadgeProps {
   tone: StatusTone;

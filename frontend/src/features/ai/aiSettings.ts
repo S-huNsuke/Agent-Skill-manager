@@ -1,4 +1,4 @@
-import type { AISettingsViewModel } from "../../lib/mocks";
+import type { AISettingsViewModel } from "../../lib/types";
 
 export type AiPreset = "none" | "openai" | "anthropic" | "gemini" | "openrouter" | "deepseek" | "moonshot" | "qwen" | "zhipu" | "minimax" | "ollama" | "custom-compatible";
 

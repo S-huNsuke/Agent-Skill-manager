@@ -2,6 +2,7 @@ package geminicli
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
 
@@ -55,7 +56,5 @@ func withLookPath(lookPath func(string) (string, error)) func(string) (string, e
 	if lookPath != nil {
 		return lookPath
 	}
-	return func(file string) (string, error) {
-		return file, os.ErrNotExist
-	}
+	return exec.LookPath
 }

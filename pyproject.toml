@@ -1,12 +1,10 @@
 [project]
 name = "agent-skills-manager"
-version = "0.0.0"
+version = "0.1.0"
 description = "Bootstrap metadata for the Agent Skills Manager repository."
 requires-python = ">=3.11"
-dependencies = [
-    "httpx>=0.27",
-]
+dependencies = []
 
 [tool.pytest.ini_options]
 addopts = "-q"
-testpaths = []
+testpaths = ["python/tests"]

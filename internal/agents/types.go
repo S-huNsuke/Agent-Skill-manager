@@ -9,16 +9,18 @@ import (
 type HealthStatus string
 
 const (
-	HealthNotInstalled                 HealthStatus = "not_installed"
-	HealthInstalledButUnreadable       HealthStatus = "installed_but_unreadable"
-	HealthInstalledButSkillPathMissing HealthStatus = "installed_but_skill_path_missing"
-	HealthInstalledButSkillPathEmpty   HealthStatus = "installed_but_skill_path_empty"
-	HealthReady                        HealthStatus = "ready"
-	ErrCodeInstallNotFound                          = "install_not_found"
-	ErrCodeInstallUnreadable                        = "install_unreadable"
-	ErrCodeSkillPathMissing                         = "skill_path_missing"
-	ErrCodeSkillPathEmpty                           = "skill_path_empty"
-	ErrCodeNotImplemented                           = "not_implemented"
+	HealthNotInstalled                  HealthStatus = "not_installed"
+	HealthInstalledButUnreadable        HealthStatus = "installed_but_unreadable"
+	HealthInstalledButExecutableMissing HealthStatus = "installed_but_executable_missing"
+	HealthInstalledButSkillPathMissing  HealthStatus = "installed_but_skill_path_missing"
+	HealthInstalledButSkillPathEmpty    HealthStatus = "installed_but_skill_path_empty"
+	HealthReady                         HealthStatus = "ready"
+	ErrCodeInstallNotFound                           = "install_not_found"
+	ErrCodeInstallUnreadable                         = "install_unreadable"
+	ErrCodeExecutableNotFound                        = "executable_not_found"
+	ErrCodeSkillPathMissing                          = "skill_path_missing"
+	ErrCodeSkillPathEmpty                            = "skill_path_empty"
+	ErrCodeNotImplemented                            = "not_implemented"
 )
 
 var ErrNotImplemented = errors.New("not implemented")
@@ -37,10 +39,12 @@ type AgentInstall struct {
 type SkillMutation struct {
 	Name       string
 	SourcePath string
+	Version    string
 }
 
 type Adapter interface {
 	ID() string
+	SkillsRelativePath() string
 	Discover(context.Context) (AgentInstall, error)
 	DiscoverAll(context.Context) ([]AgentInstall, error)
 	ListInstalledSkills(context.Context, AgentInstall) ([]string, error)

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { AISettingsViewModel, AssistantChatMessageViewModel, AssistantTaskViewModel, SuggestionTemplate, TaskHistoryItem, TaskStatus } from "../../lib/mocks";
+import type { AISettingsViewModel, AssistantTaskViewModel, SuggestionTemplate, TaskHistoryItem, TaskStatus } from "../../lib/types";
 import { waitForApi } from "../../lib/api";
 import { getTaskStatusMeta, taskStatusMeta } from "../../lib/status";
 import { StatusBadge } from "../../components/StatusBadge";
@@ -29,6 +29,7 @@ interface ChatSession {
 }
 
 const CHAT_SESSIONS_STORAGE_KEY = "agent-skills-manager.chatSessions";
+type SubmitIntent = "chat" | "plan";
 
 function createMessageId(role: ChatMessage["role"]) {
   return `${role}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -191,10 +192,6 @@ export function AssistantPanel({ task, onAdvance, onReset, onClose }: AssistantP
   }, [messages]);
 
   const currentMeta = getTaskStatusMeta(currentStatus);
-  const chatHistory: AssistantChatMessageViewModel[] = messages
-    .filter((msg) => msg.role === "user" || msg.role === "assistant")
-    .map((msg) => ({ role: msg.role, content: msg.content }));
-
   async function handleSaveAISettings() {
     setSavingAISettings(true);
     setAiSettingsStatus(null);
@@ -212,14 +209,14 @@ export function AssistantPanel({ task, onAdvance, onReset, onClose }: AssistantP
     }
   }
 
-  /** 提交用户输入的目标 */
-  async function handleSubmitGoal() {
-    const trimmed = goalText.trim();
+  /** 提交用户输入，根据意图进入聊天或技能规划管线 */
+  async function handleSubmit(intent: SubmitIntent = "chat", overrideText?: string) {
+    const trimmed = (overrideText ?? goalText).trim();
     if (!trimmed || sending) return;
     setSending(true);
     setSubmitError(null);
-    setCurrentStatus("queued");
     setGoalText("");
+    setSubmittedGoal(trimmed);
     const time = new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
     const sessionId = activeSessionId ?? `chat-${Date.now()}`;
     const sessionTitle = createSessionTitle(trimmed);
@@ -233,17 +230,31 @@ export function AssistantPanel({ task, onAdvance, onReset, onClose }: AssistantP
 
     try {
       const api = await waitForApi();
-      const response = await api.chatAssistant(trimmed, chatHistory);
-      const nextMessages: ChatMessage[] = [
-        ...pendingMessages.filter((msg) => !msg.id.startsWith("assistant-pending-")),
-        {
-          id: createMessageId("assistant"),
-          role: "assistant",
-          content: response.reply,
-          time: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
-          status: response.error ? "failed" : undefined,
-        },
-      ];
+      let nextMessages: ChatMessage[];
+      if (intent === "plan") {
+        const task = await api.submitGoal(trimmed);
+        setActiveTask(task);
+        setCurrentStatus(task.status);
+        const taskMessages = taskToMessages(task, trimmed);
+        nextMessages = taskMessages.length > 0 ? taskMessages : pendingMessages;
+      } else {
+        const historyPayload = messages
+          .filter((msg) => msg.role === "user" || msg.role === "assistant" || msg.role === "system")
+          .map((msg) => ({ role: msg.role, content: msg.content }));
+        const response = await api.chatAssistant(trimmed, historyPayload);
+        const reply = response.reply || "模型没有返回内容。";
+        nextMessages = [
+          ...pendingMessages,
+          {
+            id: createMessageId("assistant"),
+            role: "assistant",
+            content: reply,
+            time: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
+            status: response.error ? "failed" : undefined,
+          },
+        ];
+        setCurrentStatus(response.error ? "failed" : "queued");
+      }
       setMessages(nextMessages);
       updateChatSession(sessionId, sessionTitle, nextMessages);
     } catch (err) {
@@ -337,9 +348,9 @@ export function AssistantPanel({ task, onAdvance, onReset, onClose }: AssistantP
     }
   }
 
-  /** 使用建议模板填充目标输入 */
+  /** 使用建议模板直接创建技能规划任务 */
   function handleUseSuggestion(tpl: SuggestionTemplate) {
-    setGoalText(tpl.promptTemplate);
+    void handleSubmit("plan", tpl.promptTemplate);
   }
 
   const isTaskActive = activeTask.request && activeTask.status !== "queued";
@@ -698,14 +709,14 @@ export function AssistantPanel({ task, onAdvance, onReset, onClose }: AssistantP
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                handleSubmitGoal();
+                void handleSubmit("chat");
               }
             }}
             rows={1}
           />
           <button
             type="button"
-            onClick={handleSubmitGoal}
+            onClick={() => void handleSubmit("chat")}
             disabled={goalText.trim().length === 0 || sending}
             className="shrink-0 w-9 h-9 rounded-card bg-accent text-white flex items-center justify-center hover:bg-accent-warm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             title={sending ? "发送中" : "发送"}
@@ -713,7 +724,17 @@ export function AssistantPanel({ task, onAdvance, onReset, onClose }: AssistantP
             {sending ? "…" : "↑"}
           </button>
         </div>
-        <p className="text-[10px] text-ink-muted mt-1.5 px-1">按 Enter 发送，Shift+Enter 换行</p>
+        <div className="flex items-center justify-between gap-2 mt-1.5 px-1">
+          <p className="text-[10px] text-ink-muted">按 Enter 聊天，Shift+Enter 换行</p>
+          <button
+            type="button"
+            onClick={() => void handleSubmit("plan")}
+            disabled={goalText.trim().length === 0 || sending}
+            className="rounded-chip px-2 py-0.5 text-[10px] font-medium bg-surface text-ink-soft hover:bg-surface-hover transition-colors disabled:opacity-40"
+          >
+            规划技能方案
+          </button>
+        </div>
       </div>
     </div>
   );

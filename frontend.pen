@@ -1,0 +1,3652 @@
+{
+  "version": "2.11",
+  "children": [
+    {
+      "type": "frame",
+      "id": "EKh3S",
+      "x": 0,
+      "y": 0,
+      "name": "Agent Skills Manager Screens",
+      "layout": "vertical",
+      "gap": 80,
+      "children": [
+        {
+          "type": "frame",
+          "id": "k7jOsL",
+          "name": "Row 1",
+          "gap": 80,
+          "children": [
+            {
+              "type": "frame",
+              "id": "b7O875",
+              "name": "Home Dashboard",
+              "clip": true,
+              "width": 1440,
+              "height": 980,
+              "fill": "#FFFFFF",
+              "cornerRadius": 28,
+              "stroke": {
+                "thickness": 1,
+                "fill": "#F3D6C4"
+              },
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "WgHLh",
+                  "name": "Sidebar",
+                  "width": 276,
+                  "height": "fill_container",
+                  "fill": "#FFF8F3",
+                  "stroke": {
+                    "thickness": {
+                      "right": 1
+                    },
+                    "fill": "#F3D6C4"
+                  },
+                  "layout": "vertical",
+                  "gap": 18,
+                  "padding": [
+                    24,
+                    22
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "P7geL",
+                      "name": "brandCard",
+                      "width": "fill_container",
+                      "fill": "#FFFFFF",
+                      "cornerRadius": 8,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#0000000a",
+                        "offset": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "blur": 2
+                      },
+                      "layout": "vertical",
+                      "gap": 10,
+                      "padding": 18,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Xon8I",
+                          "name": "brandMeta",
+                          "fill": "#FF5C00",
+                          "content": "技能管理器",
+                          "fontFamily": "Funnel Sans",
+                          "fontSize": 11,
+                          "fontWeight": "600",
+                          "letterSpacing": 0.12
+                        },
+                        {
+                          "type": "text",
+                          "id": "k77wq8",
+                          "name": "brandTitle",
+                          "fill": "#1A1A1A",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "看清这台 Mac 上的技能与运行状态。",
+                          "lineHeight": 1.05,
+                          "fontFamily": "Inter",
+                          "fontSize": 26,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "taPpM",
+                          "name": "brandBody",
+                          "fill": "#666666",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "来源、授权、健康状态一页看完。",
+                          "lineHeight": 1.45,
+                          "fontFamily": "Geist",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "eqYJ4",
+                      "name": "nav",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "YrR6s",
+                          "name": "navHome",
+                          "width": "fill_container",
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FF5C00",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FF8533",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 8,
+                          "padding": [
+                            14,
+                            12
+                          ],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "DnyCR",
+                              "name": "navHomeText",
+                              "fill": "#FFFFFF",
+                              "content": "首页总览",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 15,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "ExKsb",
+                              "name": "navHomeMeta",
+                              "fill": "#FFFFFF",
+                              "content": "实时",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 11,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.12
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "tZECp",
+                          "name": "navStore",
+                          "width": "fill_container",
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#F3D6C4"
+                          },
+                          "padding": [
+                            14,
+                            12
+                          ],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "L9gRw2",
+                              "name": "navStoreText",
+                              "fill": "#1A1A1A",
+                              "content": "商店",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 15,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "toZ9z",
+                              "name": "navStoreMeta",
+                              "fill": "#666666",
+                              "content": "来源",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "akVoa",
+                          "name": "navProjects",
+                          "width": "fill_container",
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#F3D6C4"
+                          },
+                          "padding": [
+                            14,
+                            12
+                          ],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "HjPpe",
+                              "name": "navProjectsText",
+                              "fill": "#1A1A1A",
+                              "content": "项目",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 15,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "DI5b1",
+                              "name": "navProjectsMeta",
+                              "fill": "#666666",
+                              "content": "关联",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Rt0IW",
+                          "name": "navAssistant",
+                          "width": "fill_container",
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#F3D6C4"
+                          },
+                          "padding": [
+                            14,
+                            12
+                          ],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "rK4Ls",
+                              "name": "navAssistantText",
+                              "fill": "#1A1A1A",
+                              "content": "AI 助手",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 15,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "WqmB7",
+                              "name": "navAssistantMeta",
+                              "fill": "#666666",
+                              "content": "执行",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "V5sDA",
+                      "name": "footCard",
+                      "width": "fill_container",
+                      "fill": {
+                        "type": "gradient",
+                        "gradientType": "linear",
+                        "enabled": true,
+                        "rotation": 135,
+                        "size": {
+                          "height": 1
+                        },
+                        "colors": [
+                          {
+                            "color": "#FFF1E8",
+                            "position": 0
+                          },
+                          {
+                            "color": "#FFD6BE",
+                            "position": 1
+                          }
+                        ]
+                      },
+                      "cornerRadius": 8,
+                      "layout": "vertical",
+                      "gap": 10,
+                      "padding": 16,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "AOZoK",
+                          "name": "footLabel",
+                          "fill": "#FF5C00",
+                          "content": "窗口",
+                          "fontFamily": "Funnel Sans",
+                          "fontSize": 11,
+                          "fontWeight": "600",
+                          "letterSpacing": 0.12
+                        },
+                        {
+                          "type": "text",
+                          "id": "kCkMa",
+                          "name": "footValue",
+                          "fill": "#1A1A1A",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "02:00–04:00 任务照常运行，新安装需确认。",
+                          "lineHeight": 1.45,
+                          "fontFamily": "Geist",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "hX1uG",
+                  "name": "Main Content",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 24,
+                  "padding": [
+                    30,
+                    32
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "f1VSAl",
+                      "name": "hero",
+                      "clip": true,
+                      "width": "fill_container",
+                      "height": 290,
+                      "fill": "#FFF8F3",
+                      "cornerRadius": 8,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "R5grL",
+                          "x": 720,
+                          "y": -20,
+                          "name": "ribbonA",
+                          "rotation": -18,
+                          "width": 420,
+                          "height": 96,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FF5C00",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FF8533",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 999,
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "color": "#0000000a",
+                            "offset": {
+                              "x": 0,
+                              "y": 1
+                            },
+                            "blur": 2
+                          }
+                        },
+                        {
+                          "type": "frame",
+                          "id": "pOf3k",
+                          "x": 680,
+                          "y": 62,
+                          "name": "ribbonB",
+                          "rotation": 12.000000000000002,
+                          "width": 500,
+                          "height": 108,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FFC79F",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FF8533",
+                                "position": 0.48
+                              },
+                              {
+                                "color": "#FF5C00",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 999,
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "color": "#0000000a",
+                            "offset": {
+                              "x": 0,
+                              "y": 1
+                            },
+                            "blur": 2
+                          }
+                        },
+                        {
+                          "type": "frame",
+                          "id": "tnlgP",
+                          "x": 760,
+                          "y": 164,
+                          "name": "ribbonC",
+                          "rotation": -10,
+                          "width": 430,
+                          "height": 88,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FFE2D1",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FFB380",
+                                "position": 0.5
+                              },
+                              {
+                                "color": "#FF8533",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 999,
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "color": "#00000008",
+                            "offset": {
+                              "x": 0,
+                              "y": 1
+                            },
+                            "blur": 2
+                          }
+                        },
+                        {
+                          "type": "frame",
+                          "id": "uAOBn",
+                          "x": 0,
+                          "y": 0,
+                          "name": "heroText",
+                          "width": 560,
+                          "layout": "vertical",
+                          "gap": 14,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "F2U5VM",
+                              "name": "heroMeta",
+                              "fill": "#FF5C00",
+                              "content": "首页 / 总览",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.12
+                            },
+                            {
+                              "type": "text",
+                              "id": "KdXfe",
+                              "name": "heroTitle",
+                              "fill": "#1A1A1A",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "技能、环境和自动化，一屏看清。",
+                              "lineHeight": 0.98,
+                              "fontFamily": "Inter",
+                              "fontSize": 46,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "ZbQsJ",
+                              "name": "heroBody",
+                              "fill": "#666666",
+                              "textGrowth": "fixed-width",
+                              "width": 500,
+                              "content": "新增技能、环境异常和待确认任务，都能在这里立刻看到。",
+                              "lineHeight": 1.5,
+                              "fontFamily": "Geist",
+                              "fontSize": 16,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "A5rUA",
+                              "name": "heroActions",
+                              "gap": 12,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "JelKK",
+                                  "name": "primaryAction",
+                                  "fill": {
+                                    "type": "gradient",
+                                    "gradientType": "linear",
+                                    "enabled": true,
+                                    "rotation": 90,
+                                    "size": {
+                                      "height": 1
+                                    },
+                                    "colors": [
+                                      {
+                                        "color": "#FF5C00",
+                                        "position": 0
+                                      },
+                                      {
+                                        "color": "#FF8533",
+                                        "position": 1
+                                      }
+                                    ]
+                                  },
+                                  "cornerRadius": 8,
+                                  "padding": [
+                                    14,
+                                    12
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "O4CPbA",
+                                      "name": "primaryActionText",
+                                      "fill": "#FFFFFF",
+                                      "content": "立即同步",
+                                      "fontFamily": "Geist",
+                                      "fontSize": 14,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "HScGh",
+                                  "name": "secondaryAction",
+                                  "fill": "#FFFFFF",
+                                  "cornerRadius": 8,
+                                  "stroke": {
+                                    "thickness": 1,
+                                    "fill": "#F3D6C4"
+                                  },
+                                  "padding": [
+                                    14,
+                                    12
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "MnY4x",
+                                      "name": "secondaryActionText",
+                                      "fill": "#1A1A1A",
+                                      "content": "查看问题",
+                                      "fontFamily": "Geist",
+                                      "fontSize": 14,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "rYpef",
+                          "x": 0,
+                          "y": 252,
+                          "name": "heroTag",
+                          "fill": "#666666",
+                          "content": "186 个技能 · 12 个任务运行中 · 4 个待确认",
+                          "fontFamily": "Funnel Sans",
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "letterSpacing": 0.06
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "E5CNB9",
+                      "name": "featureRow1",
+                      "width": "fill_container",
+                      "gap": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "yImBV",
+                          "name": "pulseCard",
+                          "width": "fill_container",
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 140,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FFF1E8",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FFD1B2",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 8,
+                          "layout": "vertical",
+                          "gap": 14,
+                          "padding": 22,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "N5AkPL",
+                              "name": "pulseMeta",
+                              "fill": "#FF5C00",
+                              "content": "概况",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.12
+                            },
+                            {
+                              "type": "text",
+                              "id": "NWcjo",
+                              "name": "pulseTitle",
+                              "fill": "#1A1A1A",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "12 个任务里，9 个正常，2 个待批，1 个待修复。",
+                              "lineHeight": 1.05,
+                              "fontFamily": "Inter",
+                              "fontSize": 28,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "a5iOyL",
+                              "name": "pulseBody",
+                              "fill": "#666666",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "状态分开显示，不用翻日志。",
+                              "lineHeight": 1.5,
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "zL5D0",
+                          "name": "coverageCard",
+                          "width": "fill_container",
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 140,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FFE4D2",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FFB380",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 8,
+                          "layout": "vertical",
+                          "gap": 14,
+                          "padding": 22,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "NYUO3",
+                              "name": "coverageMeta",
+                              "fill": "#FF5C00",
+                              "content": "变更",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.12
+                            },
+                            {
+                              "type": "text",
+                              "id": "K9u1c",
+                              "name": "coverageTitle",
+                              "fill": "#1A1A1A",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "今天新增 3 个技能接入，Codex 与 Claude Code 已恢复一致。",
+                              "lineHeight": 1.05,
+                              "fontFamily": "Inter",
+                              "fontSize": 28,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "mNlvS",
+                              "name": "coverageBody",
+                              "fill": "#666666",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "新增、漂移和最近同步时间都在这里。",
+                              "lineHeight": 1.5,
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "g0N8A",
+                      "name": "featureRow2",
+                      "width": "fill_container",
+                      "gap": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "B94TtZ",
+                          "name": "attentionCard",
+                          "width": "fill_container",
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#F3D6C4"
+                          },
+                          "layout": "vertical",
+                          "gap": 14,
+                          "padding": 22,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "a3OFfJ",
+                              "name": "attentionMeta",
+                              "fill": "#FF5C00",
+                              "content": "待处理",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.12
+                            },
+                            {
+                              "type": "text",
+                              "id": "S1jnVh",
+                              "name": "attentionTitle",
+                              "fill": "#1A1A1A",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "有 2 个安装被拦下，但原因已经写清。",
+                              "lineHeight": 1.08,
+                              "fontFamily": "Inter",
+                              "fontSize": 26,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "vlig5",
+                              "name": "attentionBody",
+                              "fill": "#666666",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "确认是否放行即可。",
+                              "lineHeight": 1.5,
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "swHNS",
+                          "name": "logCard",
+                          "width": "fill_container",
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#F3D6C4"
+                          },
+                          "layout": "vertical",
+                          "gap": 14,
+                          "padding": 22,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "vPtsp",
+                              "name": "logMeta",
+                              "fill": "#FF5C00",
+                              "content": "记录",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.12
+                            },
+                            {
+                              "type": "text",
+                              "id": "D3CJu",
+                              "name": "logLine1",
+                              "fill": "#1A1A1A",
+                              "content": "09:42 已同步目录，新增 3 个候选技能",
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "nJsn1",
+                              "name": "logLine2",
+                              "fill": "#1A1A1A",
+                              "content": "09:47 Codex 环境恢复正常",
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "uI4D8",
+                              "name": "logLine3",
+                              "fill": "#1A1A1A",
+                              "content": "09:53 预算策略拦下 2 个跨网安装请求",
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "jMR47",
+              "name": "Store",
+              "clip": true,
+              "width": 1440,
+              "height": 980,
+              "fill": "#FFFFFF",
+              "cornerRadius": 28,
+              "stroke": {
+                "thickness": 1,
+                "fill": "#F3D6C4"
+              },
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "JGP5s",
+                  "name": "Sidebar",
+                  "width": 320,
+                  "height": "fill_container",
+                  "fill": "#FFF8F3",
+                  "stroke": {
+                    "thickness": {
+                      "right": 1
+                    },
+                    "fill": "#F3D6C4"
+                  },
+                  "layout": "vertical",
+                  "gap": 18,
+                  "padding": [
+                    24,
+                    22
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "gu5VN",
+                      "name": "brandCard",
+                      "width": "fill_container",
+                      "fill": "#FFFFFF",
+                      "cornerRadius": 8,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#0000000a",
+                        "offset": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "blur": 2
+                      },
+                      "layout": "vertical",
+                      "gap": 10,
+                      "padding": 18,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "KArq4",
+                          "name": "brandMeta",
+                          "fill": "#FF5C00",
+                          "content": "技能商店",
+                          "fontFamily": "Funnel Sans",
+                          "fontSize": 11,
+                          "fontWeight": "600",
+                          "letterSpacing": 0.12
+                        },
+                        {
+                          "type": "text",
+                          "id": "g47so",
+                          "name": "brandTitle",
+                          "fill": "#1A1A1A",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "先看清兼容性，再决定装什么。",
+                          "lineHeight": 1.05,
+                          "fontFamily": "Inter",
+                          "fontSize": 26,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "GxyDJ",
+                          "name": "brandBody",
+                          "fill": "#666666",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "来源、风险和安装动作放在同一页。",
+                          "lineHeight": 1.45,
+                          "fontFamily": "Geist",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "LL1qc",
+                      "name": "nav",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "waXNY",
+                          "name": "navHome",
+                          "width": "fill_container",
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#F3D6C4"
+                          },
+                          "padding": [
+                            14,
+                            12
+                          ],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "B0fD2x",
+                              "name": "navHomeText",
+                              "fill": "#1A1A1A",
+                              "content": "首页总览",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 15,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "lnUxk",
+                              "name": "navHomeMeta",
+                              "fill": "#666666",
+                              "content": "实时",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "ElEYp",
+                          "name": "navStore",
+                          "width": "fill_container",
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FF5C00",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FF8533",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 8,
+                          "padding": [
+                            14,
+                            12
+                          ],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "jVc33",
+                              "name": "navStoreText",
+                              "fill": "#FFFFFF",
+                              "content": "商店",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 15,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "KjZsg",
+                              "name": "navStoreMeta",
+                              "fill": "#FFFFFF",
+                              "content": "来源",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "KsICU",
+                          "name": "navProjects",
+                          "width": "fill_container",
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#F3D6C4"
+                          },
+                          "padding": [
+                            14,
+                            12
+                          ],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "C8h05",
+                              "name": "navProjectsText",
+                              "fill": "#1A1A1A",
+                              "content": "项目",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 15,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "FV2GG",
+                              "name": "navProjectsMeta",
+                              "fill": "#666666",
+                              "content": "关联",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "CYBWJ",
+                          "name": "navAssistant",
+                          "width": "fill_container",
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#F3D6C4"
+                          },
+                          "padding": [
+                            14,
+                            12
+                          ],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "vDxwF",
+                              "name": "navAssistantText",
+                              "fill": "#1A1A1A",
+                              "content": "AI 助手",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 15,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "r9545o",
+                              "name": "navAssistantMeta",
+                              "fill": "#666666",
+                              "content": "执行",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "UD69F",
+                      "name": "footCard",
+                      "width": "fill_container",
+                      "fill": {
+                        "type": "gradient",
+                        "gradientType": "linear",
+                        "enabled": true,
+                        "rotation": 135,
+                        "size": {
+                          "height": 1
+                        },
+                        "colors": [
+                          {
+                            "color": "#FFF1E8",
+                            "position": 0
+                          },
+                          {
+                            "color": "#FFD6BE",
+                            "position": 1
+                          }
+                        ]
+                      },
+                      "cornerRadius": 8,
+                      "layout": "vertical",
+                      "gap": 10,
+                      "padding": 16,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "tGQ5j",
+                          "name": "footLabel",
+                          "fill": "#FF5C00",
+                          "content": "规则",
+                          "fontFamily": "Funnel Sans",
+                          "fontSize": 11,
+                          "fontWeight": "600",
+                          "letterSpacing": 0.12
+                        },
+                        {
+                          "type": "text",
+                          "id": "kY76p",
+                          "name": "footValue",
+                          "fill": "#1A1A1A",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "先检查预算、权限和助手兼容性。",
+                          "lineHeight": 1.45,
+                          "fontFamily": "Geist",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "hZRKV",
+                  "name": "Main Content",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 24,
+                  "padding": [
+                    30,
+                    32
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "rkCnK",
+                      "name": "hero",
+                      "clip": true,
+                      "width": "fill_container",
+                      "height": 290,
+                      "fill": "#FFF8F3",
+                      "cornerRadius": 8,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "aKn9G",
+                          "x": 690,
+                          "y": -10,
+                          "name": "ribbonA",
+                          "rotation": -16,
+                          "width": 450,
+                          "height": 100,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FF5C00",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FF8533",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 999
+                        },
+                        {
+                          "type": "frame",
+                          "id": "wxD53",
+                          "x": 650,
+                          "y": 76,
+                          "name": "ribbonB",
+                          "rotation": 12.000000000000002,
+                          "width": 520,
+                          "height": 110,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FFD4BB",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FF8533",
+                                "position": 0.45
+                              },
+                              {
+                                "color": "#FF5C00",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 999
+                        },
+                        {
+                          "type": "frame",
+                          "id": "xXhs5",
+                          "x": 760,
+                          "y": 180,
+                          "name": "ribbonC",
+                          "rotation": -10,
+                          "width": 390,
+                          "height": 82,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FFE9DC",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FFB380",
+                                "position": 0.55
+                              },
+                              {
+                                "color": "#FF8533",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 999
+                        },
+                        {
+                          "type": "frame",
+                          "id": "qBpew",
+                          "x": 0,
+                          "y": 0,
+                          "name": "heroText",
+                          "width": 560,
+                          "layout": "vertical",
+                          "gap": 14,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "r0nPg",
+                              "name": "heroMeta",
+                              "fill": "#FF5C00",
+                              "content": "商店 / 来源",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.12
+                            },
+                            {
+                              "type": "text",
+                              "id": "ueSFZ",
+                              "name": "heroTitle",
+                              "fill": "#1A1A1A",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "装之前，先把兼容性和影响看清。",
+                              "lineHeight": 1,
+                              "fontFamily": "Inter",
+                              "fontSize": 44,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "EJhDy",
+                              "name": "heroBody",
+                              "fill": "#666666",
+                              "textGrowth": "fixed-width",
+                              "width": 500,
+                              "content": "看目录时，同时看到适配环境、权限需求和推荐理由。",
+                              "lineHeight": 1.5,
+                              "fontFamily": "Geist",
+                              "fontSize": 16,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "AXQwE",
+                              "name": "heroActions",
+                              "gap": 12,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "ioB2X",
+                                  "name": "primaryAction",
+                                  "fill": {
+                                    "type": "gradient",
+                                    "gradientType": "linear",
+                                    "enabled": true,
+                                    "rotation": 90,
+                                    "size": {
+                                      "height": 1
+                                    },
+                                    "colors": [
+                                      {
+                                        "color": "#FF5C00",
+                                        "position": 0
+                                      },
+                                      {
+                                        "color": "#FF8533",
+                                        "position": 1
+                                      }
+                                    ]
+                                  },
+                                  "cornerRadius": 8,
+                                  "padding": [
+                                    14,
+                                    12
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "o9QzhK",
+                                      "name": "primaryActionText",
+                                      "fill": "#FFFFFF",
+                                      "content": "添加来源",
+                                      "fontFamily": "Geist",
+                                      "fontSize": 14,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "t1eKH",
+                                  "name": "secondaryAction",
+                                  "fill": "#FFFFFF",
+                                  "cornerRadius": 8,
+                                  "stroke": {
+                                    "thickness": 1,
+                                    "fill": "#F3D6C4"
+                                  },
+                                  "padding": [
+                                    14,
+                                    12
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "d5v2Yu",
+                                      "name": "secondaryActionText",
+                                      "fill": "#1A1A1A",
+                                      "content": "查看队列",
+                                      "fontFamily": "Geist",
+                                      "fontSize": 14,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "FGsYw",
+                          "x": 0,
+                          "y": 252,
+                          "name": "heroTag",
+                          "fill": "#666666",
+                          "content": "24 个技能 · 5 个待处理 · 3 个目录源",
+                          "fontFamily": "Funnel Sans",
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "letterSpacing": 0.06
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "P0fj4",
+                      "name": "featureRow1",
+                      "width": "fill_container",
+                      "gap": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "FhoHG",
+                          "name": "curationCard",
+                          "width": "fill_container",
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 140,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FFF1E8",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FFD1B2",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 8,
+                          "layout": "vertical",
+                          "gap": 14,
+                          "padding": 22,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "tOL9m",
+                              "name": "curationMeta",
+                              "fill": "#FF5C00",
+                              "content": "推荐",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.12
+                            },
+                            {
+                              "type": "text",
+                              "id": "NPswe",
+                              "name": "curationTitle",
+                              "fill": "#1A1A1A",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "把当前最合适的技能放到前面。",
+                              "lineHeight": 1.05,
+                              "fontFamily": "Inter",
+                              "fontSize": 28,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "f12vKS",
+                              "name": "curationBody",
+                              "fill": "#666666",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "少翻列表，先看最相关的。",
+                              "lineHeight": 1.5,
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "bT7uj",
+                          "name": "compatCard",
+                          "width": "fill_container",
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 140,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FFE4D2",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FFB380",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 8,
+                          "layout": "vertical",
+                          "gap": 14,
+                          "padding": 22,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "GAUuo",
+                              "name": "compatMeta",
+                              "fill": "#FF5C00",
+                              "content": "兼容",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.12
+                            },
+                            {
+                              "type": "text",
+                              "id": "W7BGB",
+                              "name": "compatTitle",
+                              "fill": "#1A1A1A",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Claude Code、Codex 和 Gemini CLI 的适配状态，要先说清。",
+                              "lineHeight": 1.05,
+                              "fontFamily": "Inter",
+                              "fontSize": 28,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "y16K0B",
+                              "name": "compatBody",
+                              "fill": "#666666",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "支持、部分支持、未验证，一眼分清。",
+                              "lineHeight": 1.5,
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "e0jiy9",
+                      "name": "featureRow2",
+                      "width": "fill_container",
+                      "gap": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "v04Bk",
+                          "name": "flowCard",
+                          "width": "fill_container",
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#F3D6C4"
+                          },
+                          "layout": "vertical",
+                          "gap": 14,
+                          "padding": 22,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "W7ol1",
+                              "name": "flowMeta",
+                              "fill": "#FF5C00",
+                              "content": "流程",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.12
+                            },
+                            {
+                              "type": "text",
+                              "id": "tIpCd",
+                              "name": "flowTitle",
+                              "fill": "#1A1A1A",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "安装过程不要是黑箱。",
+                              "lineHeight": 1.08,
+                              "fontFamily": "Inter",
+                              "fontSize": 26,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "m3Z7M",
+                              "name": "flowBody",
+                              "fill": "#666666",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "预算、权限和来源逐步展示。",
+                              "lineHeight": 1.5,
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "B7LGqw",
+                          "name": "queueCard",
+                          "width": "fill_container",
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#F3D6C4"
+                          },
+                          "layout": "vertical",
+                          "gap": 14,
+                          "padding": 22,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "dmyjG",
+                              "name": "queueMeta",
+                              "fill": "#FF5C00",
+                              "content": "队列",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.12
+                            },
+                            {
+                              "type": "text",
+                              "id": "boOeS",
+                              "name": "queueLine1",
+                              "fill": "#1A1A1A",
+                              "content": "5 个安装待处理，其中 2 个待审批，1 个待校验。",
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "cdI9c",
+                              "name": "queueLine2",
+                              "fill": "#1A1A1A",
+                              "content": "先看原因，再决定是否继续。",
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "VsUtE",
+                              "name": "queueLine3",
+                              "fill": "#1A1A1A",
+                              "content": "不靠试装判断。",
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "xqs4f",
+          "name": "Row 2",
+          "gap": 80,
+          "children": [
+            {
+              "type": "frame",
+              "id": "IqeIs",
+              "name": "Projects",
+              "clip": true,
+              "width": 1440,
+              "height": 980,
+              "fill": "#FFFFFF",
+              "cornerRadius": 28,
+              "stroke": {
+                "thickness": 1,
+                "fill": "#F3D6C4"
+              },
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "G9MB9",
+                  "name": "Sidebar",
+                  "width": 336,
+                  "height": "fill_container",
+                  "fill": "#FFF8F3",
+                  "stroke": {
+                    "thickness": {
+                      "right": 1
+                    },
+                    "fill": "#F3D6C4"
+                  },
+                  "layout": "vertical",
+                  "gap": 18,
+                  "padding": [
+                    24,
+                    22
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "M4j7JP",
+                      "name": "brandCard",
+                      "width": "fill_container",
+                      "fill": "#FFFFFF",
+                      "cornerRadius": 8,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#0000000a",
+                        "offset": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "blur": 2
+                      },
+                      "layout": "vertical",
+                      "gap": 10,
+                      "padding": 18,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "d4Pas8",
+                          "name": "brandMeta",
+                          "fill": "#FF5C00",
+                          "content": "项目中心",
+                          "fontFamily": "Funnel Sans",
+                          "fontSize": 11,
+                          "fontWeight": "600",
+                          "letterSpacing": 0.12
+                        },
+                        {
+                          "type": "text",
+                          "id": "ywtss",
+                          "name": "brandTitle",
+                          "fill": "#1A1A1A",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "项目要什么，本机有什么，分开看。",
+                          "lineHeight": 1.05,
+                          "fontFamily": "Inter",
+                          "fontSize": 26,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "k04AMn",
+                          "name": "brandBody",
+                          "fill": "#666666",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "项目意图和本机状态不要混在一起。",
+                          "lineHeight": 1.45,
+                          "fontFamily": "Geist",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "aY6ty",
+                      "name": "nav",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "ug8Qr",
+                          "name": "navHome",
+                          "width": "fill_container",
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#F3D6C4"
+                          },
+                          "padding": [
+                            14,
+                            12
+                          ],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "OFrWH",
+                              "name": "navHomeText",
+                              "fill": "#1A1A1A",
+                              "content": "首页总览",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 15,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "SDjb3",
+                              "name": "navHomeMeta",
+                              "fill": "#666666",
+                              "content": "实时",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "t6GMA",
+                          "name": "navStore",
+                          "width": "fill_container",
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#F3D6C4"
+                          },
+                          "padding": [
+                            14,
+                            12
+                          ],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "p0Cg7A",
+                              "name": "navStoreText",
+                              "fill": "#1A1A1A",
+                              "content": "商店",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 15,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "fQDMB",
+                              "name": "navStoreMeta",
+                              "fill": "#666666",
+                              "content": "来源",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "P73jF2",
+                          "name": "navProjects",
+                          "width": "fill_container",
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FF5C00",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FF8533",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 8,
+                          "padding": [
+                            14,
+                            12
+                          ],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "eQ7Dn",
+                              "name": "navProjectsText",
+                              "fill": "#FFFFFF",
+                              "content": "项目",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 15,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "EPnKv",
+                              "name": "navProjectsMeta",
+                              "fill": "#FFFFFF",
+                              "content": "关联",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "SZoyR",
+                          "name": "navAssistant",
+                          "width": "fill_container",
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#F3D6C4"
+                          },
+                          "padding": [
+                            14,
+                            12
+                          ],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "BY3eV",
+                              "name": "navAssistantText",
+                              "fill": "#1A1A1A",
+                              "content": "AI 助手",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 15,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "k75Tg",
+                              "name": "navAssistantMeta",
+                              "fill": "#666666",
+                              "content": "执行",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "rdqng",
+                      "name": "footCard",
+                      "width": "fill_container",
+                      "fill": {
+                        "type": "gradient",
+                        "gradientType": "linear",
+                        "enabled": true,
+                        "rotation": 135,
+                        "size": {
+                          "height": 1
+                        },
+                        "colors": [
+                          {
+                            "color": "#FFF1E8",
+                            "position": 0
+                          },
+                          {
+                            "color": "#FFD6BE",
+                            "position": 1
+                          }
+                        ]
+                      },
+                      "cornerRadius": 8,
+                      "layout": "vertical",
+                      "gap": 10,
+                      "padding": 16,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "G27gSy",
+                          "name": "footLabel",
+                          "fill": "#FF5C00",
+                          "content": "覆盖",
+                          "fontFamily": "Funnel Sans",
+                          "fontSize": 11,
+                          "fontWeight": "600",
+                          "letterSpacing": 0.12
+                        },
+                        {
+                          "type": "text",
+                          "id": "Ekm2i",
+                          "name": "footValue",
+                          "fill": "#1A1A1A",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "23 个活跃项目中，18 个已完成覆盖。",
+                          "lineHeight": 1.45,
+                          "fontFamily": "Geist",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "S7noR",
+                  "name": "Projects Main",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 24,
+                  "padding": [
+                    30,
+                    32
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "URXkW",
+                      "name": "hero",
+                      "clip": true,
+                      "width": "fill_container",
+                      "height": 300,
+                      "fill": "#FFF8F3",
+                      "cornerRadius": 8,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "hBUMX",
+                          "x": 720,
+                          "y": -10,
+                          "name": "ribbonA",
+                          "rotation": -16,
+                          "width": 430,
+                          "height": 96,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FF5C00",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FF8533",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 999
+                        },
+                        {
+                          "type": "frame",
+                          "id": "vtMP8",
+                          "x": 700,
+                          "y": 78,
+                          "name": "ribbonB",
+                          "rotation": 11,
+                          "width": 500,
+                          "height": 108,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FFD4BB",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FF8533",
+                                "position": 0.45
+                              },
+                              {
+                                "color": "#FF5C00",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 999
+                        },
+                        {
+                          "type": "frame",
+                          "id": "L2IXaQ",
+                          "x": 790,
+                          "y": 188,
+                          "name": "ribbonC",
+                          "rotation": -10,
+                          "width": 380,
+                          "height": 82,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FFE9DC",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FFB380",
+                                "position": 0.55
+                              },
+                              {
+                                "color": "#FF8533",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 999
+                        },
+                        {
+                          "type": "frame",
+                          "id": "K4uGJG",
+                          "x": 0,
+                          "y": 0,
+                          "name": "heroText",
+                          "width": 570,
+                          "layout": "vertical",
+                          "gap": 14,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "HtaGO",
+                              "name": "heroMeta",
+                              "fill": "#FF5C00",
+                              "content": "项目 / 关联",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.12
+                            },
+                            {
+                              "type": "text",
+                              "id": "jHpQD",
+                              "name": "heroTitle",
+                              "fill": "#1A1A1A",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "项目需求、技能组和本机状态，分层看清。",
+                              "lineHeight": 1,
+                              "fontFamily": "Inter",
+                              "fontSize": 42,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "f6nDk",
+                              "name": "heroBody",
+                              "fill": "#666666",
+                              "textGrowth": "fixed-width",
+                              "width": 520,
+                              "content": "项目列表、当前详情和环境健康拆开显示，更容易判断能不能安全执行。",
+                              "lineHeight": 1.5,
+                              "fontFamily": "Geist",
+                              "fontSize": 16,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "j9Qjam",
+                              "name": "heroActions",
+                              "gap": 12,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "JAIvc",
+                                  "name": "primaryAction",
+                                  "fill": {
+                                    "type": "gradient",
+                                    "gradientType": "linear",
+                                    "enabled": true,
+                                    "rotation": 90,
+                                    "size": {
+                                      "height": 1
+                                    },
+                                    "colors": [
+                                      {
+                                        "color": "#FF5C00",
+                                        "position": 0
+                                      },
+                                      {
+                                        "color": "#FF8533",
+                                        "position": 1
+                                      }
+                                    ]
+                                  },
+                                  "cornerRadius": 8,
+                                  "padding": [
+                                    14,
+                                    12
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "n1VkWo",
+                                      "name": "primaryActionText",
+                                      "fill": "#FFFFFF",
+                                      "content": "新建项目",
+                                      "fontFamily": "Geist",
+                                      "fontSize": 14,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "o1J0E7",
+                                  "name": "secondaryAction",
+                                  "fill": "#FFFFFF",
+                                  "cornerRadius": 8,
+                                  "stroke": {
+                                    "thickness": 1,
+                                    "fill": "#F3D6C4"
+                                  },
+                                  "padding": [
+                                    14,
+                                    12
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "F06PBo",
+                                      "name": "secondaryActionText",
+                                      "fill": "#1A1A1A",
+                                      "content": "搜索项目",
+                                      "fontFamily": "Geist",
+                                      "fontSize": 14,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "frg6b",
+                          "x": 0,
+                          "y": 262,
+                          "name": "heroTag",
+                          "fill": "#666666",
+                          "content": "本地项目与虚拟项目统一查看",
+                          "fontFamily": "Funnel Sans",
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "letterSpacing": 0.06
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "PlcHA",
+                      "name": "contentRow",
+                      "width": "fill_container",
+                      "gap": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "G1q8hO",
+                          "name": "listCard",
+                          "width": 320,
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#F3D6C4"
+                          },
+                          "layout": "vertical",
+                          "gap": 12,
+                          "padding": 20,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "wCzOs",
+                              "name": "listMeta",
+                              "fill": "#FF5C00",
+                              "content": "列表",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.12
+                            },
+                            {
+                              "type": "text",
+                              "id": "Z4iC1I",
+                              "name": "item1",
+                              "fill": "#1A1A1A",
+                              "content": "checkout-desktop · 本地目录 · 缺 2 项",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "U0eNh",
+                              "name": "item2",
+                              "fill": "#1A1A1A",
+                              "content": "agent-lab · 本地目录 · 已覆盖",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "PAkN5",
+                              "name": "item3",
+                              "fill": "#1A1A1A",
+                              "content": "docs-pipeline · 虚拟项目 · 未绑定",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "pqLwy",
+                              "name": "item4",
+                              "fill": "#1A1A1A",
+                              "content": "catalog-rehearsal · 虚拟项目 · 待修复",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "pFCZ4",
+                          "name": "detailCard",
+                          "width": "fill_container",
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 140,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FFF1E8",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FFD1B2",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 8,
+                          "layout": "vertical",
+                          "gap": 14,
+                          "padding": 22,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "J531o",
+                              "name": "detailMeta",
+                              "fill": "#FF5C00",
+                              "content": "详情",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.12
+                            },
+                            {
+                              "type": "text",
+                              "id": "RRZI2",
+                              "name": "detailTitle",
+                              "fill": "#1A1A1A",
+                              "content": "checkout-desktop",
+                              "fontFamily": "Inter",
+                              "fontSize": 30,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "A0ONEj",
+                              "name": "detailBody",
+                              "fill": "#666666",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "这是本地目录项目，绑定了“零售运营”技能组。技能组表示它需要什么，不代表本机已经装好。",
+                              "lineHeight": 1.5,
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "j8jf3E",
+                              "name": "detailLine1",
+                              "fill": "#1A1A1A",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "需要：codex-review、claude-code-patch、tavily-research、openclaw-release-helper",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "vyJ1W",
+                              "name": "detailLine2",
+                              "fill": "#1A1A1A",
+                              "content": "已匹配 2 个 · 未安装 1 个 · 待修复 1 个",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "jsmam",
+                          "name": "healthCard",
+                          "width": 300,
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#F3D6C4"
+                          },
+                          "layout": "vertical",
+                          "gap": 14,
+                          "padding": 20,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "o4yAQ",
+                              "name": "healthMeta",
+                              "fill": "#FF5C00",
+                              "content": "健康",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.12
+                            },
+                            {
+                              "type": "text",
+                              "id": "xt4p7",
+                              "name": "healthLine1",
+                              "fill": "#1A1A1A",
+                              "content": "Codex：正常",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "YVBvF",
+                              "name": "healthLine2",
+                              "fill": "#1A1A1A",
+                              "content": "Claude Code：待验证",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "rDQcW",
+                              "name": "healthLine3",
+                              "fill": "#1A1A1A",
+                              "content": "Gemini CLI：正常",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "eaueL",
+                              "name": "healthLine4",
+                              "fill": "#1A1A1A",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "OpenClaw 辅助器：待修复",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ZNgVU",
+                      "name": "bottomRow",
+                      "width": "fill_container",
+                      "gap": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "OsA9H",
+                          "name": "stateCard",
+                          "width": "fill_container",
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#F3D6C4"
+                          },
+                          "layout": "vertical",
+                          "gap": 14,
+                          "padding": 22,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "LOeBU",
+                              "name": "stateMeta",
+                              "fill": "#FF5C00",
+                              "content": "本机",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.12
+                            },
+                            {
+                              "type": "text",
+                              "id": "ZYIeC",
+                              "name": "stateBody",
+                              "fill": "#666666",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "本机装有 41 个技能，其中 27 个已关联到项目。当前项目实际用到的只是其中一部分。",
+                              "lineHeight": 1.5,
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "bhK6X",
+                          "name": "recentCard",
+                          "width": "fill_container",
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#F3D6C4"
+                          },
+                          "layout": "vertical",
+                          "gap": 14,
+                          "padding": 22,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "gEfQM",
+                              "name": "recentMeta",
+                              "fill": "#FF5C00",
+                              "content": "记录",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.12
+                            },
+                            {
+                              "type": "text",
+                              "id": "tu81X",
+                              "name": "recentLine1",
+                              "fill": "#1A1A1A",
+                              "content": "09:42 因 package-lock.json 变化重新扫描",
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "PQXTU",
+                              "name": "recentLine2",
+                              "fill": "#1A1A1A",
+                              "content": "09:44 自动匹配 codex-review 与 claude-code-patch",
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "i672Tn",
+                              "name": "recentLine3",
+                              "fill": "#1A1A1A",
+                              "content": "09:47 openclaw-release-helper 标记为待修复",
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "MTnxC",
+              "name": "AI Assistant",
+              "clip": true,
+              "width": 1440,
+              "height": 980,
+              "fill": "$surface",
+              "cornerRadius": 28,
+              "stroke": {
+                "thickness": 1,
+                "fill": "$borderSoft"
+              },
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "uMTTH",
+                  "name": "Sidebar",
+                  "clip": true,
+                  "width": 336,
+                  "height": "fill_container",
+                  "fill": "$surfaceMuted",
+                  "stroke": {
+                    "thickness": {
+                      "right": 1
+                    },
+                    "fill": "$borderSoft"
+                  },
+                  "layout": "vertical",
+                  "gap": 28,
+                  "padding": [
+                    28,
+                    24
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "cD4Ee",
+                      "name": "brand",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "TYQoX",
+                          "name": "brandTitle",
+                          "fill": "$textPrimary",
+                          "content": "技能管理器",
+                          "fontFamily": "Inter",
+                          "fontSize": 29,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "oUNdC",
+                          "name": "brandMeta",
+                          "fill": "$textSecondary",
+                          "content": "本地技能自动化助手",
+                          "fontFamily": "Funnel Sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal",
+                          "letterSpacing": 0.08
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "m5MmP",
+                      "name": "nav",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "OJJHk",
+                          "name": "navHome",
+                          "fill": "$textSecondary",
+                          "content": "首页总览",
+                          "fontFamily": "Geist",
+                          "fontSize": 15,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "fqjJo",
+                          "name": "navStore",
+                          "fill": "$textSecondary",
+                          "content": "商店",
+                          "fontFamily": "Geist",
+                          "fontSize": 15,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "AdlOx",
+                          "name": "navProjects",
+                          "fill": "$textSecondary",
+                          "content": "项目",
+                          "fontFamily": "Geist",
+                          "fontSize": 15,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "y8rQ2",
+                          "name": "navAssistant",
+                          "width": "fill_container",
+                          "fill": "$surfaceCard",
+                          "cornerRadius": 12,
+                          "stroke": {
+                            "thickness": {
+                              "left": 4
+                            },
+                            "fill": "$accentPrimary"
+                          },
+                          "padding": [
+                            12,
+                            10
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "PKhrU",
+                              "name": "navAssistantText",
+                              "fill": "$textPrimary",
+                              "content": "AI 助手",
+                              "fontFamily": "Geist",
+                              "fontSize": 15,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "lSSqf",
+                      "name": "sideFooter",
+                      "width": "fill_container",
+                      "fill": "$surfaceCard",
+                      "cornerRadius": 14,
+                      "stroke": {
+                        "thickness": 1,
+                        "fill": "$borderSoft"
+                      },
+                      "layout": "vertical",
+                      "gap": 10,
+                      "padding": 14,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "fc5OB",
+                          "name": "footerLine1",
+                          "fill": "$textPrimary",
+                          "content": "安装操作需审批",
+                          "fontFamily": "Funnel Sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "f6HOOH",
+                          "name": "footerLine2",
+                          "fill": "$textSecondary",
+                          "content": "原因会先写清楚",
+                          "fontFamily": "Funnel Sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "aJw4s",
+                  "name": "Assistant Main",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": {
+                    "type": "gradient",
+                    "gradientType": "linear",
+                    "enabled": true,
+                    "rotation": 112,
+                    "size": {
+                      "height": 1
+                    },
+                    "colors": [
+                      {
+                        "color": "#FFF9F3",
+                        "position": 0
+                      },
+                      {
+                        "color": "#FFF4EA",
+                        "position": 0.58
+                      },
+                      {
+                        "color": "#FFFDFC",
+                        "position": 1
+                      }
+                    ]
+                  },
+                  "layout": "none",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "nMdJ2",
+                      "x": 430,
+                      "y": -118,
+                      "name": "ribbon",
+                      "opacity": 0.9,
+                      "rotation": -10,
+                      "width": 758,
+                      "height": 448,
+                      "cornerRadius": 220
+                    },
+                    {
+                      "type": "frame",
+                      "id": "VhsCm",
+                      "x": 58,
+                      "y": 84,
+                      "name": "hero",
+                      "width": 448,
+                      "layout": "vertical",
+                      "gap": 18,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "OrytJ",
+                          "name": "heroMeta",
+                          "fill": "#9D4C24",
+                          "content": "助手 / 执行",
+                          "fontFamily": "Funnel Sans",
+                          "fontSize": 13,
+                          "fontWeight": "600",
+                          "letterSpacing": 0.08
+                        },
+                        {
+                          "type": "text",
+                          "id": "jgBn1",
+                          "name": "heroTitle",
+                          "fill": "#1A1A1A",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "把需求交给助手，过程和阻塞点都会摊开给你看。",
+                          "lineHeight": 0.96,
+                          "fontFamily": "Inter",
+                          "fontSize": 56,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "neoxO",
+                          "name": "heroBody",
+                          "fill": "#5B5147",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "推荐、安装、修复和暂停都会逐步展示，不用猜系统在做什么。",
+                          "lineHeight": 1.5,
+                          "fontFamily": "Geist",
+                          "fontSize": 17,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "wkHK8",
+                      "x": 58,
+                      "y": 494,
+                      "name": "goalRow",
+                      "width": 468,
+                      "layout": "vertical",
+                      "gap": 14,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "O4FaX",
+                          "name": "goalInput",
+                          "width": "fill_container",
+                          "fill": "#FFFFFFCC",
+                          "cornerRadius": 22,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#F0C9AF"
+                          },
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "color": "#00000010",
+                            "offset": {
+                              "x": 0,
+                              "y": 8
+                            },
+                            "blur": 22
+                          },
+                          "padding": [
+                            20,
+                            18
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "EaeXq",
+                              "name": "goalInputText",
+                              "fill": "#2B211C",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "帮我为今天下午的零售结账项目准备 Claude Code 和 Codex 审查环境。",
+                              "fontFamily": "Geist",
+                              "fontSize": 16,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "uwjUn",
+                          "name": "goalRun",
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#FF5C00",
+                                "position": 0
+                              },
+                              {
+                                "color": "#FF8A3D",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 22,
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "color": "#00000014",
+                            "offset": {
+                              "x": 0,
+                              "y": 8
+                            },
+                            "blur": 20
+                          },
+                          "padding": [
+                            20,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "YPQe5",
+                              "name": "goalRunText",
+                              "fill": "$surface",
+                              "content": "开始执行",
+                              "fontFamily": "Geist",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Oq3ZV",
+                      "x": 374,
+                      "y": 164,
+                      "name": "bodyRow",
+                      "width": 674,
+                      "height": 728,
+                      "fill": {
+                        "type": "gradient",
+                        "gradientType": "linear",
+                        "enabled": true,
+                        "rotation": 135,
+                        "size": {
+                          "height": 1
+                        },
+                        "colors": [
+                          {
+                            "color": "#FFF5EE",
+                            "position": 0
+                          },
+                          {
+                            "color": "#FFE7D7",
+                            "position": 0.5
+                          },
+                          {
+                            "color": "#FFF9F5",
+                            "position": 1
+                          }
+                        ]
+                      },
+                      "cornerRadius": 30,
+                      "stroke": {
+                        "thickness": 1,
+                        "fill": "#F3D6C2"
+                      },
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#00000012",
+                        "offset": {
+                          "x": 0,
+                          "y": 10
+                        },
+                        "blur": 26
+                      },
+                      "gap": 18,
+                      "padding": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "vwZcD",
+                          "name": "stagePanel",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": "#FFF9F5D9",
+                          "cornerRadius": 24,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#F1D3BE"
+                          },
+                          "layout": "vertical",
+                          "gap": 14,
+                          "padding": [
+                            24,
+                            22
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "saaqj",
+                              "name": "stageLabel",
+                              "fill": "#8C4A2F",
+                              "content": "执行",
+                              "fontFamily": "Funnel Sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.08
+                            },
+                            {
+                              "type": "frame",
+                              "id": "GVSDp",
+                              "name": "stage1",
+                              "width": "fill_container",
+                              "fill": "$surfaceMuted",
+                              "cornerRadius": 16,
+                              "layout": "vertical",
+                              "gap": 8,
+                              "padding": [
+                                18,
+                                16
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "GL6V8",
+                                  "name": "stage1Title",
+                                  "fill": "$textPrimary",
+                                  "content": "1. 检查项目需求",
+                                  "fontFamily": "Geist",
+                                  "fontSize": 17,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "cmXnN",
+                                  "name": "stage1Body",
+                                  "fill": "$textSecondary",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "已识别 checkout 仓库，并匹配到“零售运营”技能组。",
+                                  "lineHeight": 1.42,
+                                  "fontFamily": "Geist",
+                                  "fontSize": 15,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "P6AtGQ",
+                              "name": "stage2",
+                              "width": "fill_container",
+                              "fill": "$surface",
+                              "cornerRadius": 16,
+                              "stroke": {
+                                "thickness": 1,
+                                "fill": "$borderSoft"
+                              },
+                              "layout": "vertical",
+                              "gap": 8,
+                              "padding": [
+                                18,
+                                16
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "m4J7Uq",
+                                  "name": "stage2Title",
+                                  "fill": "$textPrimary",
+                                  "content": "2. 安装推荐技能",
+                                  "fontFamily": "Geist",
+                                  "fontSize": 17,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "Aa1GP",
+                                  "name": "stage2Body",
+                                  "fill": "$textSecondary",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "审批通过后可安装 tavily-research 和 diff-review-pack；另有 1 项已完成。",
+                                  "lineHeight": 1.42,
+                                  "fontFamily": "Geist",
+                                  "fontSize": 15,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "LGh16",
+                              "name": "stage3",
+                              "width": "fill_container",
+                              "fill": "$surface",
+                              "cornerRadius": 16,
+                              "stroke": {
+                                "thickness": 1,
+                                "fill": "$borderSoft"
+                              },
+                              "layout": "vertical",
+                              "gap": 8,
+                              "padding": [
+                                18,
+                                16
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "Row9E",
+                                  "name": "stage3Title",
+                                  "fill": "$textPrimary",
+                                  "content": "3. 修复异常技能",
+                                  "fontFamily": "Geist",
+                                  "fontSize": 17,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "Z7JB8O",
+                                  "name": "stage3Body",
+                                  "fill": "$textSecondary",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "OpenClaw 发布辅助器校验失败，修复方案已生成，尚未写入本地。",
+                                  "lineHeight": 1.42,
+                                  "fontFamily": "Geist",
+                                  "fontSize": 15,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "CJgP1",
+                              "name": "stage4",
+                              "width": "fill_container",
+                              "fill": "$surface",
+                              "cornerRadius": 16,
+                              "stroke": {
+                                "thickness": 1,
+                                "fill": "$accentPrimary"
+                              },
+                              "layout": "vertical",
+                              "gap": 8,
+                              "padding": [
+                                18,
+                                16
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "iqTxu",
+                                  "name": "stage4Title",
+                                  "fill": "$textPrimary",
+                                  "content": "4. 等待批准后继续",
+                                  "fontFamily": "Geist",
+                                  "fontSize": 17,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "z9C0pi",
+                                  "name": "stage4Body",
+                                  "fill": "$textSecondary",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "写入本地目录前已暂停，等你批准后继续。",
+                                  "lineHeight": 1.42,
+                                  "fontFamily": "Geist",
+                                  "fontSize": 15,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "OP3h6",
+                          "name": "recRail",
+                          "width": 314,
+                          "height": "fill_container",
+                          "layout": "vertical",
+                          "gap": 16,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "v8A7C",
+                              "name": "recCard",
+                              "width": "fill_container",
+                              "fill": {
+                                "type": "gradient",
+                                "gradientType": "linear",
+                                "enabled": true,
+                                "rotation": 135,
+                                "size": {
+                                  "height": 1
+                                },
+                                "colors": [
+                                  {
+                                    "color": "#FFE0C8",
+                                    "position": 0
+                                  },
+                                  {
+                                    "color": "#FFF2E7",
+                                    "position": 1
+                                  }
+                                ]
+                              },
+                              "cornerRadius": 22,
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "color": "#0000000F",
+                                "offset": {
+                                  "x": 0,
+                                  "y": 6
+                                },
+                                "blur": 18
+                              },
+                              "layout": "vertical",
+                              "gap": 10,
+                              "padding": 18,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "Rwqsr",
+                                  "name": "recTitle",
+                                  "fill": "$textPrimary",
+                                  "content": "建议",
+                                  "fontFamily": "Geist",
+                                  "fontSize": 18,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "At8hN",
+                                  "name": "recItem1",
+                                  "fill": "#2B211C",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "批准 Codex 与 Claude Code 的安装请求",
+                                  "fontFamily": "Geist",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "w9XElO",
+                                  "name": "recItem2",
+                                  "fill": "#2B211C",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "先看修复差异，再决定是否写入",
+                                  "fontFamily": "Geist",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "y7LgL",
+                                  "name": "recItem3",
+                                  "fill": "#6B5C52",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "归档两个闲置的 Gemini 技能",
+                                  "fontFamily": "Geist",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "qQDmC",
+                              "name": "blockCard",
+                              "width": "fill_container",
+                              "fill": "#FFF9F6",
+                              "cornerRadius": 22,
+                              "stroke": {
+                                "thickness": 1,
+                                "fill": "#F0C8BB"
+                              },
+                              "layout": "vertical",
+                              "gap": 10,
+                              "padding": 18,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "eECLg",
+                                  "name": "blockTitle",
+                                  "fill": "$textPrimary",
+                                  "content": "阻塞",
+                                  "fontFamily": "Geist",
+                                  "fontSize": 18,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "nbVi0",
+                                  "name": "blockBody",
+                                  "fill": "#B54A3A",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "本地目录暂不能写入：审批未放行，且有一个下载包缺少可信签名。",
+                                  "lineHeight": 1.45,
+                                  "fontFamily": "Geist",
+                                  "fontSize": 15,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "qjc12",
+                              "name": "logCard",
+                              "width": "fill_container",
+                              "fill": "#FFFFFFD9",
+                              "cornerRadius": 22,
+                              "stroke": {
+                                "thickness": 1,
+                                "fill": "#EFDCCD"
+                              },
+                              "layout": "vertical",
+                              "gap": 8,
+                              "padding": 18,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "sCoHu",
+                                  "name": "logTitle",
+                                  "fill": "$textPrimary",
+                                  "content": "记录",
+                                  "fontFamily": "Geist",
+                                  "fontSize": 18,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "HiyvX",
+                                  "name": "logLine1",
+                                  "fill": "$textPrimary",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "09:41:12  已分析 checkout-desktop",
+                                  "fontFamily": "Funnel Sans",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "Q1ac8",
+                                  "name": "logLine2",
+                                  "fill": "$textPrimary",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "09:41:18  已匹配“零售运营”技能组",
+                                  "fontFamily": "Funnel Sans",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "EJPZy",
+                                  "name": "logLine3",
+                                  "fill": "$success",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "09:41:23 已为 Codex 安装 diff-review-pack",
+                                  "fontFamily": "Funnel Sans",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dehC1",
+                                  "name": "logLine4",
+                                  "fill": "$warning",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "09:41:28 tavily-research 已加入待审批队列",
+                                  "fontFamily": "Funnel Sans",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "Y8htyW",
+                                  "name": "logLine5",
+                                  "fill": "$danger",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "09:41:34 发现 OpenClaw 辅助器校验不一致",
+                                  "fontFamily": "Funnel Sans",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variables": {
+    "accentDeep": {
+      "type": "color",
+      "value": "#9D4C24"
+    },
+    "accentPrimary": {
+      "type": "color",
+      "value": "#C96E3D"
+    },
+    "bodyFont": {
+      "type": "string",
+      "value": "Funnel Sans"
+    },
+    "borderSoft": {
+      "type": "color",
+      "value": "#D8D0C6"
+    },
+    "danger": {
+      "type": "color",
+      "value": "#B54A3A"
+    },
+    "headingFont": {
+      "type": "string",
+      "value": "Newsreader"
+    },
+    "monoFont": {
+      "type": "string",
+      "value": "IBM Plex Mono"
+    },
+    "success": {
+      "type": "color",
+      "value": "#2F7A4A"
+    },
+    "surface": {
+      "type": "color",
+      "value": "#FCFAF7"
+    },
+    "surfaceCard": {
+      "type": "color",
+      "value": "#FFFDFC"
+    },
+    "surfaceDark": {
+      "type": "color",
+      "value": "#101010"
+    },
+    "surfaceMuted": {
+      "type": "color",
+      "value": "#F2ECE3"
+    },
+    "textPrimary": {
+      "type": "color",
+      "value": "#191714"
+    },
+    "textSecondary": {
+      "type": "color",
+      "value": "#6D665E"
+    },
+    "warning": {
+      "type": "color",
+      "value": "#B7791F"
+    }
+  }
+}

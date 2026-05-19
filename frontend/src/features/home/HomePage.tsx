@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { DashboardViewModel, ActivityItem, SystemHealthStatus, RecommendedAction, SuggestionTemplate, StatusTone } from "../../lib/mocks";
+import type { DashboardViewModel, ActivityItem, SystemHealthStatus, RecommendedAction, SuggestionTemplate, StatusTone } from "../../lib/types";
 import { selectApi } from "../../lib/api";
 import { StatusBadge } from "../../components/StatusBadge";
 import { EmptyState } from "../../components/EmptyState";
@@ -76,10 +76,18 @@ export function HomePage({ dashboard, onRefresh, onOpenAssistant }: HomePageProp
   }, [healthStatus]);
 
   /** 提交 AI 目标并打开助手面板 */
-  function handleQuickGoal() {
+  async function handleQuickGoal() {
     const trimmed = goalInput.trim();
     if (!trimmed) return;
     onOpenAssistant?.();
+    try {
+      const api = selectApi();
+      await api.submitGoal(trimmed);
+      setGoalInput("");
+      onRefresh?.();
+    } catch (err) {
+      alert(`提交目标失败: ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
 
   return (

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { AgentViewModel, AgentDetailViewModel, SkillExplanationViewModel, SkillViewModel } from "../../lib/mocks";
+import type { AgentViewModel, AgentDetailViewModel, SkillExplanationViewModel, SkillViewModel } from "../../lib/types";
 import { selectApi } from "../../lib/api";
 import { StatusBadge } from "../../components/StatusBadge";
 import { Modal } from "../../components/Modal";
@@ -19,6 +19,8 @@ export function AgentsPage({ agents, onRefresh, onAction, skills }: AgentsPagePr
   const [skillSearch, setSkillSearch] = useState("");
   const [explainingSkill, setExplainingSkill] = useState<SkillExplanationViewModel | null>(null);
   const [explainLoading, setExplainLoading] = useState(false);
+  const [aiExplanation, setAiExplanation] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
   const [showBatchUpdate, setShowBatchUpdate] = useState(false);
   const [batchUpdating, setBatchUpdating] = useState(false);
 
@@ -90,13 +92,28 @@ export function AgentsPage({ agents, onRefresh, onAction, skills }: AgentsPagePr
     }
   };
 
-  /** 询问 AI 技能的作用 */
+  /** 询问 AI 技能的作用，先快速展示基本信息，再异步加载 AI 解读 */
   const handleExplainSkill = async (agentID: string, skillName: string) => {
     setExplainLoading(true);
+    setAiExplanation(null);
+    setAiLoading(false);
     try {
       const api = selectApi();
       const explanation = await api.explainSkill(agentID, skillName);
       setExplainingSkill(explanation);
+      setExplainLoading(false);
+
+      if (explanation.found) {
+        setAiLoading(true);
+        try {
+          const aiResult = await api.generateSkillExplanation(agentID, skillName);
+          setAiExplanation(aiResult || null);
+        } catch {
+          setAiExplanation(null);
+        } finally {
+          setAiLoading(false);
+        }
+      }
     } catch (err) {
       setExplainingSkill({
         agentId: agentID,
@@ -107,8 +124,8 @@ export function AgentsPage({ agents, onRefresh, onAction, skills }: AgentsPagePr
         readmeFile: "",
         readmeContent: `获取技能信息失败: ${err instanceof Error ? err.message : String(err)}`,
         files: [],
+        aiExplanation: "",
       });
-    } finally {
       setExplainLoading(false);
     }
   };
@@ -478,7 +495,7 @@ export function AgentsPage({ agents, onRefresh, onAction, skills }: AgentsPagePr
 
       {/* AI 技能分析弹窗 */}
       {explainingSkill && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setExplainingSkill(null)}>
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => { setExplainingSkill(null); setAiExplanation(null); setAiLoading(false); }}>
           <article
             className="bg-surface-warm rounded-panel shadow-panel max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
@@ -495,7 +512,7 @@ export function AgentsPage({ agents, onRefresh, onAction, skills }: AgentsPagePr
               </div>
               <button
                 type="button"
-                onClick={() => setExplainingSkill(null)}
+                onClick={() => { setExplainingSkill(null); setAiExplanation(null); setAiLoading(false); }}
                 className="w-8 h-8 rounded-full bg-surface hover:bg-surface-hover flex items-center justify-center text-ink-soft hover:text-ink transition-colors"
               >
                 ✕
@@ -504,10 +521,30 @@ export function AgentsPage({ agents, onRefresh, onAction, skills }: AgentsPagePr
             <div className="p-6 overflow-y-auto flex-1">
               {explainLoading ? (
                 <div className="text-center py-8">
-                  <p className="text-ink-soft">正在读取技能信息...</p>
+                  <div className="inline-block w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin mb-3" />
+                  <p className="text-ink-soft">正在分析技能用途...</p>
                 </div>
               ) : explainingSkill.found ? (
                 <div className="flex flex-col gap-4">
+                  {aiLoading ? (
+                    <div className="bg-accent-glow/30 rounded-card p-4">
+                      <div className="flex items-center gap-2">
+                        <div className="inline-block w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                        <p className="text-sm font-medium text-accent">AI 正在解读...</p>
+                      </div>
+                    </div>
+                  ) : aiExplanation ? (
+                    <div className="bg-accent-glow/30 rounded-card p-4">
+                      <p className="text-sm font-medium text-accent mb-1">💡 AI 解读</p>
+                      <p className="text-sm text-ink">{aiExplanation}</p>
+                    </div>
+                  ) : (
+                    <div className="bg-accent-glow/30 rounded-card p-4">
+                      <p className="text-sm font-medium text-accent mb-1">💡 技能简介</p>
+                      <p className="text-sm text-ink">{explainingSkill.readmeContent?.split("\n")[0] || "暂无简介"}</p>
+                    </div>
+                  )}
+
                   {explainingSkill.skillPath && (
                     <div className="bg-surface rounded-card p-3 flex items-center justify-between">
                       <span className="text-sm text-ink-soft break-all">{explainingSkill.skillPath}</span>
@@ -525,11 +562,14 @@ export function AgentsPage({ agents, onRefresh, onAction, skills }: AgentsPagePr
                       描述来源: {explainingSkill.readmeFile}
                     </div>
                   )}
-                  <div className="bg-surface rounded-card p-4">
-                    <pre className="text-sm text-ink leading-relaxed whitespace-pre-wrap break-words font-body">
-                      {explainingSkill.readmeContent}
-                    </pre>
-                  </div>
+                  {explainingSkill.readmeContent && (
+                    <div>
+                      <p className="uppercase tracking-widest text-[11px] text-ink-muted font-body mb-2">技能文档 ({explainingSkill.readmeFile})</p>
+                      <div className="bg-surface rounded-card p-4 max-h-64 overflow-y-auto">
+                        <pre className="text-xs text-ink-soft whitespace-pre-wrap font-mono">{explainingSkill.readmeContent}</pre>
+                      </div>
+                    </div>
+                  )}
                   {explainingSkill.files?.length > 0 && (
                     <div>
                       <p className="text-xs text-ink-muted mb-2">目录文件:</p>

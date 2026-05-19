@@ -1,4 +1,4 @@
-import type { StatusTone, TaskStatus } from "./mocks";
+import type { StatusTone, TaskStatus } from "./types";
 
 export const taskStatusMeta: Record<
   TaskStatus,

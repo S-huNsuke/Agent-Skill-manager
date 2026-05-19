@@ -1,7 +1,7 @@
 import { useCallback, Component, useEffect, useState, startTransition, type ReactNode } from "react";
 import { HashRouter } from "react-router-dom";
 import { mockApi, isRunningInWails, waitForApi } from "./lib/api";
-import type { AppSnapshot } from "./lib/mocks";
+import type { AppSnapshot } from "./lib/types";
 import type { FrontendApi } from "./lib/api";
 import { AppRoutes } from "./routes";
 

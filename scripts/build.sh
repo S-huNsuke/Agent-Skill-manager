@@ -10,10 +10,21 @@ APP_RESOURCES="${APP_BUNDLE}/Contents/Resources"
 APP_BINARY="${APP_MACOS}/${BIN_NAME}"
 
 export GOCACHE="${PROJECT_DIR}/.gocache"
+export GOMODCACHE="/private/tmp/go-mod-cache"
 export TMPDIR="/private/tmp/agent-skills-manager"
+export CI=true
 export CGO_ENABLED=1
 export CGO_CFLAGS="-mmacosx-version-min=10.13"
 export CGO_LDFLAGS="-framework UniformTypeIdentifiers -mmacosx-version-min=10.13"
+
+GO_BIN="$(command -v go || true)"
+if [ -z "${GO_BIN}" ] && [ -x "${HOME}/.local/share/mise/installs/go/latest/bin/go" ]; then
+  GO_BIN="${HOME}/.local/share/mise/installs/go/latest/bin/go"
+fi
+if [ -z "${GO_BIN}" ]; then
+  echo "go binary not found; install Go or activate mise first" >&2
+  exit 127
+fi
 
 mkdir -p "${GOCACHE}"
 mkdir -p "${TMPDIR}"
@@ -25,7 +36,7 @@ pnpm --dir "${PROJECT_DIR}/frontend" build
 
 echo "[2/4] Compiling Go binary..."
 mkdir -p "${BUILD_DIR}"
-go build -buildvcs=false \
+"${GO_BIN}" build -buildvcs=false \
   -tags "desktop,wv2runtime.download,production" \
   -ldflags "-w -s" \
   -o "${BUILD_DIR}/${BIN_NAME}" \
@@ -42,6 +53,10 @@ mkdir -p "${APP_MACOS}"
 mkdir -p "${APP_RESOURCES}"
 cp "${BUILD_DIR}/${BIN_NAME}" "${APP_BINARY}"
 chmod +x "${APP_BINARY}"
+mkdir -p "${APP_RESOURCES}/python"
+cp -R "${PROJECT_DIR}/python/worker" "${APP_RESOURCES}/python/worker"
+find "${APP_RESOURCES}/python" -type d -name "__pycache__" -prune -exec rm -rf {} +
+find "${APP_RESOURCES}/python" -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete
 
 cat > "${APP_BUNDLE}/Contents/Info.plist" << 'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>

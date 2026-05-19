@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { SkillViewModel, SkillDetailViewModel } from "../../lib/mocks";
+import type { SkillViewModel, SkillDetailViewModel } from "../../lib/types";
 import { selectApi } from "../../lib/api";
 import { SearchBar } from "../../components/SearchBar";
 import { FilterPanel } from "../../components/FilterPanel";
@@ -195,6 +195,9 @@ export function SkillsPage({ skills, onRefresh, onAction }: SkillsPageProps) {
         <div className="flex items-start gap-3">
           <button
             type="button"
+            role="checkbox"
+            aria-checked={isSelected}
+            aria-label={`选择技能 ${skill.name}`}
             onClick={() => toggleSelect(skill.id)}
             className={`shrink-0 w-5 h-5 mt-0.5 rounded border-2 flex items-center justify-center transition-colors ${
               isSelected ? "bg-accent border-accent text-white" : "border-border hover:border-accent/50"
@@ -224,7 +227,7 @@ export function SkillsPage({ skills, onRefresh, onAction }: SkillsPageProps) {
             )}
             <div className="flex items-center justify-between">
               <div className="flex gap-3 text-xs text-ink-muted">
-                <span className="rounded-chip bg-surface-warm px-2 py-0.5">{skill.agent}</span>
+                <span className="rounded-chip bg-surface-cream px-2 py-0.5">{skill.agent}</span>
                 <span>{skill.group}</span>
                 <span>{skill.projects} 个项目</span>
                 <span>{skill.installedAt}</span>
@@ -232,13 +235,13 @@ export function SkillsPage({ skills, onRefresh, onAction }: SkillsPageProps) {
               <div className="flex gap-1.5">
                 <button
                   onClick={() => handleViewDetail(skill)}
-                  className="rounded-chip px-2.5 py-1 text-xs font-medium bg-surface-warm text-ink hover:bg-surface-hover transition-colors"
+                  className="rounded-chip px-2.5 py-1 text-xs font-medium bg-surface-cream text-ink hover:bg-surface-hover transition-colors"
                 >
                   详情
                 </button>
                 <button
                   onClick={() => handleOpenInFinder(skill)}
-                  className="rounded-chip px-2.5 py-1 text-xs font-medium bg-surface-warm text-ink hover:bg-surface-hover transition-colors"
+                  className="rounded-chip px-2.5 py-1 text-xs font-medium bg-surface-cream text-ink hover:bg-surface-hover transition-colors"
                   title="在 Finder 中打开"
                 >
                   打开
@@ -336,7 +339,7 @@ export function SkillsPage({ skills, onRefresh, onAction }: SkillsPageProps) {
               <button
                 type="button"
                 onClick={() => setSelectedIds(new Set())}
-                className="rounded-chip px-3 py-1 text-xs font-medium bg-surface-warm text-ink-muted hover:text-ink transition-colors"
+                className="rounded-chip px-3 py-1 text-xs font-medium bg-surface-cream text-ink-muted hover:text-ink transition-colors"
               >
                 取消选择
               </button>
@@ -390,7 +393,7 @@ export function SkillsPage({ skills, onRefresh, onAction }: SkillsPageProps) {
           {sortOrder === "asc" ? "↑" : "↓"}
         </button>
         {onRefresh && (
-          <button onClick={onRefresh} className="rounded-pill px-4 py-2 text-sm font-medium bg-surface-warm shadow-panel hover:shadow-panel-hover transition-shadow text-ink">
+          <button onClick={onRefresh} className="rounded-pill px-4 py-2 text-sm font-medium bg-surface shadow-panel hover:shadow-panel-hover transition-shadow text-ink">
             刷新
           </button>
         )}
@@ -516,7 +519,7 @@ export function SkillsPage({ skills, onRefresh, onAction }: SkillsPageProps) {
       {/* Confirm Uninstall Modal */}
       {confirmUninstall && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setConfirmUninstall(null)}>
-          <article className="bg-surface-warm rounded-panel shadow-panel max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+          <article className="bg-surface rounded-panel shadow-panel max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
             <div className="p-6">
               <h2 className="font-display text-xl font-semibold text-ink mb-2">确认卸载</h2>
               <p className="text-ink-soft">确定要卸载技能「{confirmUninstall.name}」吗？此操作不可撤销。</p>
@@ -544,7 +547,7 @@ export function SkillsPage({ skills, onRefresh, onAction }: SkillsPageProps) {
           <div className="bg-surface rounded-card p-4 max-h-40 overflow-y-auto">
             <div className="flex flex-wrap gap-1">
               {filtered.filter((s) => selectedIds.has(s.id)).map((skill) => (
-                <span key={skill.id} className="rounded-chip bg-surface-warm px-2 py-0.5 text-xs text-ink-soft">{skill.name}</span>
+                <span key={skill.id} className="rounded-chip bg-surface-cream px-2 py-0.5 text-xs text-ink-soft">{skill.name}</span>
               ))}
             </div>
           </div>

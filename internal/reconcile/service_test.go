@@ -119,3 +119,24 @@ func TestPlanDoesNotUninstallUnrelatedWorkingSkills(t *testing.T) {
 		t.Fatalf("expected no block reason, got %q", plan.BlockReason)
 	}
 }
+
+func TestPlanMatchesCatalogBySkillName(t *testing.T) {
+	svc := Service{}
+
+	plan, err := svc.Plan(
+		[]skillgroups.DesiredSkill{{SkillID: "skill-a"}},
+		[]domain.CatalogSkill{{ID: "source-one-skill-a", Name: "skill-a", Version: "1.2.3"}},
+		nil,
+	)
+	if err != nil {
+		t.Fatalf("expected reconcile plan, got error: %v", err)
+	}
+
+	if len(plan.Install) != 1 {
+		t.Fatalf("expected one install action, got %+v", plan.Install)
+	}
+
+	if plan.Install[0].SkillID != "skill-a" {
+		t.Fatalf("expected action to use skill name, got %q", plan.Install[0].SkillID)
+	}
+}

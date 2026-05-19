@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/caojun/agent-skills-manager/internal/ai"
 	"github.com/caojun/agent-skills-manager/internal/domain"
 )
 
@@ -35,18 +36,29 @@ func (a *App) GetCatalogSources() []CatalogSourceViewModel {
 	return result
 }
 
-/** 同步商店源，从 GitHub 仓库获取技能列表 */
+/** 同步商店源，从 GitHub 仓库获取技能列表，耗时操作在锁外执行 */
 func (a *App) SyncCatalogSource(sourceID string) SyncResultViewModel {
-	a.catalogMu.Lock()
-	defer a.catalogMu.Unlock()
-
+	a.catalogMu.RLock()
 	var target *CatalogSourceViewModel
+	var targetCopy CatalogSourceViewModel
 	for i := range a.catalogSources {
 		if a.catalogSources[i].ID == sourceID {
 			target = &a.catalogSources[i]
+			targetCopy = a.catalogSources[i]
 			break
 		}
 	}
+
+	existingMap := make(map[string]bool)
+	if target != nil {
+		for _, item := range a.catalogItems {
+			if item.Source == target.Name {
+				existingMap[item.Name] = true
+			}
+		}
+	}
+	a.catalogMu.RUnlock()
+
 	if target == nil {
 		return SyncResultViewModel{
 			SourceID:      sourceID,
@@ -57,89 +69,126 @@ func (a *App) SyncCatalogSource(sourceID string) SyncResultViewModel {
 		}
 	}
 
-	skills, err := fetchGitHubSkills(target.URL)
+	skills, err := fetchGitHubSkills(targetCopy.URL)
 	if err != nil {
-		target.LastSyncStatus = "failed"
-
-		if a.catalogSrcRepo != nil {
-			_ = a.catalogSrcRepo.Put(context.Background(), catalogSourceVMToDomain(*target))
+		a.catalogMu.Lock()
+		for i := range a.catalogSources {
+			if a.catalogSources[i].ID == sourceID {
+				a.catalogSources[i].LastSyncStatus = "failed"
+				if a.catalogSrcRepo != nil {
+					_ = a.catalogSrcRepo.Put(context.Background(), catalogSourceVMToDomain(a.catalogSources[i]))
+				}
+				break
+			}
 		}
+		a.catalogMu.Unlock()
+		a.logger.Error("商店同步失败", "sourceID", sourceID, "url", targetCopy.URL, "error", err)
 
 		return SyncResultViewModel{
 			SourceID:      sourceID,
 			Success:       false,
 			NewSkills:     0,
 			UpdatedSkills: 0,
-			Errors:        []string{err.Error()},
+			Errors:        []string{translateSyncError(err)},
 		}
 	}
 
-	now := time.Now().Format("2006-01-02 15:04")
-	target.LastSyncedAt = now
-	target.LastSyncStatus = "success"
+	type skillInstallInfo struct {
+		skill     gitHubSkill
+		installed bool
+	}
 
-	existingMap := make(map[string]bool)
-	for _, item := range a.catalogItems {
-		if item.Source == target.Name {
-			existingMap[item.Name] = true
+	skillInfos := make([]skillInstallInfo, 0, len(skills))
+	for _, skill := range skills {
+		installed := a.isSkillInstalled(skill.Name)
+		skillInfos = append(skillInfos, skillInstallInfo{skill: skill, installed: installed})
+	}
+
+	now := time.Now().Format("2006-01-02 15:04")
+
+	a.catalogMu.Lock()
+	for i := range a.catalogSources {
+		if a.catalogSources[i].ID == sourceID {
+			a.catalogSources[i].LastSyncedAt = now
+			a.catalogSources[i].LastSyncStatus = "success"
+			a.catalogSources[i].SkillCount = len(skills)
+			break
 		}
 	}
 
 	newCount := 0
-	for _, skill := range skills {
-		if existingMap[skill.Name] {
-			continue
-		}
-		newCount++
-
-		installed := a.isSkillInstalled(skill.Name)
+	updatedCount := 0
+	for _, info := range skillInfos {
 		status := "available"
-		if installed {
+		if info.installed {
 			status = "installed"
 		}
-
-		a.catalogItems = append(a.catalogItems, StoreItemViewModel{
-			ID:             fmt.Sprintf("%s-%s", sourceID, skill.Name),
-			Name:           skill.Name,
-			Author:         skill.Author,
-			Source:         target.Name,
+		nextItem := StoreItemViewModel{
+			ID:             fmt.Sprintf("%s-%s", sourceID, info.skill.Name),
+			Name:           info.skill.Name,
+			Author:         info.skill.Author,
+			Source:         targetCopy.Name,
 			Status:         status,
-			Summary:        skill.Description,
-			Installs:       fmt.Sprintf("来自 %s", target.Name),
+			Summary:        info.skill.Description,
+			Installs:       fmt.Sprintf("来自 %s", targetCopy.Name),
 			Impact:         "技能将安装到指定代理的技能目录",
-			Compatibility:  skill.SupportedAgents,
-			Homepage:       skill.Homepage,
-			LocalCachePath: skill.CachePath,
-		})
-	}
+			Compatibility:  info.skill.SupportedAgents,
+			Homepage:       info.skill.Homepage,
+			LocalCachePath: info.skill.CachePath,
+		}
 
-	target.SkillCount = len(skills)
+		if existingMap[info.skill.Name] {
+			for i := range a.catalogItems {
+				if a.catalogItems[i].Source == targetCopy.Name && a.catalogItems[i].Name == info.skill.Name {
+					nextItem.Status = a.catalogItems[i].Status
+					if info.installed {
+						nextItem.Status = "installed"
+					}
+					if catalogItemChanged(a.catalogItems[i], nextItem) {
+						updatedCount++
+					}
+					a.catalogItems[i] = nextItem
+					break
+				}
+			}
+			continue
+		}
+
+		newCount++
+		a.catalogItems = append(a.catalogItems, nextItem)
+	}
 
 	if a.catalogSrcRepo != nil {
-		_ = a.catalogSrcRepo.Put(context.Background(), catalogSourceVMToDomain(*target))
+		for i := range a.catalogSources {
+			if a.catalogSources[i].ID == sourceID {
+				_ = a.catalogSrcRepo.Put(context.Background(), catalogSourceVMToDomain(a.catalogSources[i]))
 
-		ctx := context.Background()
-		domainSkills := make([]domain.CatalogSkill, 0, len(skills))
-		for _, skill := range skills {
-			domainSkills = append(domainSkills, domain.CatalogSkill{
-				ID:              fmt.Sprintf("%s-%s", sourceID, skill.Name),
-				SourceID:        sourceID,
-				Name:            skill.Name,
-				Version:         "latest",
-				Author:          skill.Author,
-				Description:     skill.Description,
-				Homepage:        skill.Homepage,
-				SupportedAgents: skill.SupportedAgents,
-			})
+				ctx := context.Background()
+				domainSkills := make([]domain.CatalogSkill, 0, len(skills))
+				for _, skill := range skills {
+					domainSkills = append(domainSkills, domain.CatalogSkill{
+						ID:              fmt.Sprintf("%s-%s", sourceID, skill.Name),
+						SourceID:        sourceID,
+						Name:            skill.Name,
+						Version:         "latest",
+						Author:          skill.Author,
+						Description:     skill.Description,
+						Homepage:        skill.Homepage,
+						SupportedAgents: skill.SupportedAgents,
+					})
+				}
+				_ = a.catalogSkillRepo.ReplaceBySource(ctx, sourceID, domainSkills)
+				break
+			}
 		}
-		_ = a.catalogSkillRepo.ReplaceBySource(ctx, sourceID, domainSkills)
 	}
+	a.catalogMu.Unlock()
 
 	return SyncResultViewModel{
 		SourceID:      sourceID,
 		Success:       true,
 		NewSkills:     newCount,
-		UpdatedSkills: 0,
+		UpdatedSkills: updatedCount,
 		Errors:        make([]string, 0),
 	}
 }
@@ -160,6 +209,21 @@ func (a *App) SyncAllSources() []SyncResultViewModel {
 		results = append(results, a.SyncCatalogSource(id))
 	}
 	return results
+}
+
+/** 判断商店条目是否发生用户可见变化 */
+func catalogItemChanged(current StoreItemViewModel, next StoreItemViewModel) bool {
+	return current.ID != next.ID ||
+		current.Name != next.Name ||
+		current.Author != next.Author ||
+		current.Source != next.Source ||
+		current.Status != next.Status ||
+		current.Summary != next.Summary ||
+		current.Installs != next.Installs ||
+		current.Impact != next.Impact ||
+		current.Homepage != next.Homepage ||
+		current.LocalCachePath != next.LocalCachePath ||
+		strings.Join(current.Compatibility, "\x00") != strings.Join(next.Compatibility, "\x00")
 }
 
 /** 添加自定义商店源 */
@@ -195,7 +259,7 @@ func (a *App) RemoveCatalogSource(sourceID string) string {
 	for i, src := range a.catalogSources {
 		if src.ID == sourceID {
 			if src.IsBuiltin {
-				return "error: cannot remove builtin source"
+				return "error: 内置商店源不可移除"
 			}
 			a.catalogSources = append(a.catalogSources[:i], a.catalogSources[i+1:]...)
 
@@ -215,7 +279,7 @@ func (a *App) RemoveCatalogSource(sourceID string) string {
 			return "ok"
 		}
 	}
-	return "error: source not found"
+	return "error: 商店源不存在"
 }
 
 /** 检查技能是否已安装 */
@@ -223,10 +287,7 @@ func (a *App) isSkillInstalled(skillName string) bool {
 	if a.registry == nil {
 		return false
 	}
-	installs, err := a.registry.DiscoverAll(context.Background())
-	if err != nil {
-		return false
-	}
+	installs := a.getCachedInstalls()
 	for _, install := range installs {
 		skillNames, err := a.registry.ListInstalledSkills(context.Background(), install)
 		if err != nil {
@@ -295,6 +356,44 @@ func (a *App) ExplainStoreSkill(sourceName string, skillName string) SkillExplan
 		result.ReadmeFile = "summary"
 	}
 
+	// 调用 AI 生成通俗解释
+	cacheKey := fmt.Sprintf("store:%s:%s", sourceName, skillName)
+	a.explainCacheMu.RLock()
+	if cached, ok := a.explainCache[cacheKey]; ok {
+		result.AiExplanation = cached
+		a.explainCacheMu.RUnlock()
+		return result
+	}
+	a.explainCacheMu.RUnlock()
+
+	if a.bridge != nil && result.ReadmeContent != "" {
+		content := result.ReadmeContent
+		if len(content) > 2000 {
+			content = content[:2000] + "\n...(已截断)"
+		}
+
+		prompt := fmt.Sprintf(
+			"根据下面的技能文档，用1-3句话解释这个技能能帮用户做什么。语言口语化、具体，避免技术术语。直接说用途，举一个使用场景，不超过80字。\n\n技能名称：%s\n\n文档：\n%s",
+			skillName, content,
+		)
+		ctx := context.Background()
+		resp, err := a.bridge.Run(ctx, ai.WorkerRequest{
+			Action: "chat",
+			Payload: map[string]any{
+				"message": prompt,
+				"history": []any{},
+			},
+		})
+		if err == nil && resp.Status == "ok" {
+			if reply, ok := resp.Data["reply"].(string); ok && reply != "" {
+				result.AiExplanation = reply
+				a.explainCacheMu.Lock()
+				a.explainCache[cacheKey] = reply
+				a.explainCacheMu.Unlock()
+			}
+		}
+	}
+
 	return result
 }
 
@@ -318,7 +417,6 @@ func fetchRawContent(rawURL string) (string, error) {
 	return string(body), nil
 }
 
-/** 返回技能组列表 */
 type gitHubSkill struct {
 	Name            string
 	Author          string
@@ -328,7 +426,6 @@ type gitHubSkill struct {
 	CachePath       string
 }
 
-/** GitHub API Contents 目录条目 */
 type gitHubContentEntry struct {
 	Name string `json:"name"`
 	Type string `json:"type"`
@@ -709,7 +806,9 @@ func cacheSkillFiles(repo string, skillName string) string {
 				resp.Body.Close()
 				break
 			}
-			_, _ = io.Copy(f, io.LimitReader(resp.Body, 512*1024))
+			if _, err := io.Copy(f, io.LimitReader(resp.Body, 512*1024)); err != nil {
+				_ = err // write failure results in an incomplete cache file; non-fatal
+			}
 			f.Close()
 			resp.Body.Close()
 			break

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import type { ProjectViewModel, SkillGroupViewModel, AgentViewModel, SkillViewModel, StoreItemViewModel, ReconcilePlanViewModel } from "../../lib/mocks";
+import type { ProjectViewModel, SkillGroupViewModel, AgentViewModel, SkillViewModel, StoreItemViewModel, ReconcilePlanViewModel } from "../../lib/types";
 import { selectApi } from "../../lib/api";
 import { EmptyState } from "../../components/EmptyState";
 import { Modal } from "../../components/Modal";
@@ -32,6 +32,9 @@ export function ProjectsPage({ projects, agents, skills, storeItems, onRefresh }
   const [skillSearchQuery, setSkillSearchQuery] = useState("");
   const [reconcilePlan, setReconcilePlan] = useState<ReconcilePlanViewModel | null>(null);
   const [reconcileExecuting, setReconcileExecuting] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [opError, setOpError] = useState<string | null>(null);
 
   const activeProject = useMemo(
     () => projects.find((p) => p.id === activeProjectId) ?? projects[0],
@@ -83,6 +86,15 @@ export function ProjectsPage({ projects, agents, skills, storeItems, onRefresh }
     loadSkillGroups();
   }, [loadSkillGroups]);
 
+  // 当 projects 列表变化时，若当前选中的项目已不存在，自动选中第一个
+  useEffect(() => {
+    if (activeProjectId && !projects.find((p) => p.id === activeProjectId)) {
+      setActiveProjectId(projects[0]?.id ?? "");
+    } else if (!activeProjectId && projects.length > 0) {
+      setActiveProjectId(projects[0].id);
+    }
+  }, [projects, activeProjectId]);
+
   /** 打开文件管理器选择目录 */
   const handleSelectDirectory = async () => {
     try {
@@ -118,15 +130,24 @@ export function ProjectsPage({ projects, agents, skills, storeItems, onRefresh }
 
   /** 删除项目 */
   const handleDeleteProject = async (projectID: string) => {
+    setDeleting(true);
+    setOpError(null);
     try {
       const api = selectApi();
-      await api.deleteProject(projectID);
+      const result = await api.deleteProject(projectID);
+      if (result !== "ok") {
+        setOpError(result);
+        return;
+      }
+      setDeleteConfirmId(null);
       if (activeProjectId === projectID) {
-        setActiveProjectId(projects[0]?.id ?? "");
+        setActiveProjectId("");
       }
       onRefresh?.();
-    } catch {
-      // 静默处理
+    } catch (e) {
+      setOpError(e instanceof Error ? e.message : "删除失败");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -239,12 +260,13 @@ export function ProjectsPage({ projects, agents, skills, storeItems, onRefresh }
   /** 协调项目技能 */
   const handleReconcileProject = async () => {
     if (!activeProject) return;
+    setOpError(null);
     try {
       const api = selectApi();
       const plan = await api.reconcileProject(activeProject.id);
       setReconcilePlan(plan);
-    } catch {
-      // 静默处理
+    } catch (e) {
+      setOpError(e instanceof Error ? e.message : "获取协调计划失败");
     }
   };
 
@@ -429,10 +451,10 @@ export function ProjectsPage({ projects, agents, skills, storeItems, onRefresh }
                         在 Finder 中打开
                       </button>
                     )}
-                    <button type="button" onClick={handleReconcileProject} disabled={!activeProject.boundAgentId || !activeProject.boundSkillGroup} className="rounded-chip px-3 py-1.5 text-xs font-medium bg-accent-glow text-accent hover:bg-accent hover:text-white transition-colors disabled:opacity-40">
+                    <button type="button" onClick={handleReconcileProject} disabled={!activeProject.boundAgentId || !activeProject.boundSkillGroup} title={!activeProject.boundAgentId ? "请先绑定代理" : !activeProject.boundSkillGroup ? "请先绑定技能组" : "分析并同步技能"} className="rounded-chip px-3 py-1.5 text-xs font-medium bg-accent-glow text-accent hover:bg-accent hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                       协调技能
                     </button>
-                    <button type="button" onClick={() => handleDeleteProject(activeProject.id)} className="rounded-chip px-3 py-1.5 text-xs font-medium bg-red-500/10 text-red-600 hover:opacity-80 transition-opacity">
+                    <button type="button" onClick={() => setDeleteConfirmId(activeProject.id)} className="rounded-chip px-3 py-1.5 text-xs font-medium bg-red-500/10 text-red-600 hover:opacity-80 transition-opacity">
                       删除项目
                     </button>
                   </div>
@@ -782,6 +804,34 @@ export function ProjectsPage({ projects, agents, skills, storeItems, onRefresh }
           </div>
         )}
       </Modal>
+
+      {/* 删除确认弹窗 */}
+      <Modal open={deleteConfirmId !== null} onClose={() => { setDeleteConfirmId(null); setOpError(null); }} title="删除项目" subtitle="此操作不可撤销">
+        <div className="flex flex-col gap-4">
+          {opError && (
+            <div className="bg-red-500/10 rounded-card p-3">
+              <p className="text-sm text-red-600">⚠️ {opError}</p>
+            </div>
+          )}
+          <p className="text-sm text-ink-soft">确定要删除项目 <span className="font-medium text-ink">{projects.find(p => p.id === deleteConfirmId)?.name}</span> 吗？</p>
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={() => { setDeleteConfirmId(null); setOpError(null); }} className="rounded-chip px-4 py-2 text-sm font-medium bg-surface text-ink hover:opacity-80 transition-opacity">
+              取消
+            </button>
+            <button type="button" onClick={() => deleteConfirmId && handleDeleteProject(deleteConfirmId)} disabled={deleting} className="rounded-chip px-4 py-2 text-sm font-medium bg-red-500 text-white hover:opacity-80 transition-opacity disabled:opacity-50">
+              {deleting ? "删除中..." : "确认删除"}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 操作错误提示（非弹窗内的错误） */}
+      {opError && deleteConfirmId === null && (
+        <div className="fixed bottom-4 right-4 bg-red-500/10 border border-red-500/20 rounded-card px-4 py-3 shadow-panel z-50">
+          <p className="text-sm text-red-600">⚠️ {opError}</p>
+          <button type="button" onClick={() => setOpError(null)} className="absolute top-1 right-2 text-red-400 hover:text-red-600 text-xs">✕</button>
+        </div>
+      )}
     </section>
   );
 }

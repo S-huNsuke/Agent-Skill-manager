@@ -3,15 +3,16 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+from argparse import Namespace
 from pathlib import Path
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 ROOT = Path(__file__).resolve().parents[2]
 PYTHON_ROOT = ROOT / "python"
 WORKER_ROOT = PYTHON_ROOT / "worker"
 sys.path.insert(0, str(PYTHON_ROOT))
 
-from worker.main import handle
+from worker.main import _create_provider, _payload_runtime_config, handle
 from worker.pipeline.chat import chat
 from worker.pipeline.planner import make_plan
 from worker.pipeline.reporter import render_report
@@ -44,6 +45,28 @@ def test_make_plan_with_provider_returns_structured_plan() -> None:
     mock_provider.complete.assert_awaited_once()
 
 
+def test_make_plan_includes_context_and_uses_aligned_fields() -> None:
+    mock_provider = AsyncMock(spec=BaseProvider)
+    mock_provider.complete.return_value = ProviderResponse(
+        text=json.dumps({
+            "goal": "install xlsx",
+            "steps": [{"action": "recommend", "label": "推荐", "detail": "推荐 xlsx"}],
+            "revision": 1,
+        })
+    )
+    context = {
+        "skills": [{"name": "old-skill", "agent": "codex", "summary": "旧技能"}],
+        "available_skills": [{"name": "xlsx", "author": "OpenAI", "summary": "处理电子表格"}],
+    }
+
+    plan = make_plan("install xlsx", context=context, provider=mock_provider)
+    request = mock_provider.complete.await_args.args[0]
+
+    assert plan["context"] == context
+    assert "old-skill (codex)：旧技能" in request.user_prompt
+    assert "xlsx by OpenAI: 处理电子表格" in request.user_prompt
+
+
 def test_make_plan_falls_back_on_provider_error() -> None:
     mock_provider = AsyncMock(spec=BaseProvider)
     mock_provider.complete.side_effect = RuntimeError("API error")
@@ -65,6 +88,33 @@ def test_resolve_plan_blocks_when_prerequisites_are_missing() -> None:
     assert resolved["prerequisites"]["has_artifact"] is False
 
 
+def test_resolve_plan_fallback_infers_install_action_from_available_skills() -> None:
+    plan = make_plan(
+        "帮我安装 xlsx 技能",
+        context={"available_skills": [{"name": "xlsx", "author": "OpenAI", "summary": "处理电子表格"}]},
+    )
+
+    resolved = resolve_plan(plan, has_artifact=True, adapter_owns_target=True)
+
+    assert resolved["status"] == "ready"
+    assert resolved["actions"] == [{
+        "skill_id": "xlsx",
+        "version": "latest",
+        "target_agent": "",
+        "action": "install",
+    }]
+
+
+def test_resolve_plan_blocks_when_no_action_can_be_inferred() -> None:
+    plan = make_plan("帮我配置一个很神秘的能力", context={"available_skills": [{"name": "xlsx"}]})
+
+    resolved = resolve_plan(plan, has_artifact=True, adapter_owns_target=True)
+
+    assert resolved["status"] == "blocked"
+    assert resolved["actions"] == []
+    assert "未能" in resolved["summary"]
+
+
 def test_resolve_plan_with_provider_returns_resolved() -> None:
     mock_provider = AsyncMock(spec=BaseProvider)
     mock_provider.complete.return_value = ProviderResponse(
@@ -79,6 +129,26 @@ def test_resolve_plan_with_provider_returns_resolved() -> None:
 
     assert resolved["status"] == "ready"
     mock_provider.complete.assert_awaited_once()
+
+
+def test_resolve_plan_filters_invalid_provider_actions() -> None:
+    mock_provider = AsyncMock(spec=BaseProvider)
+    mock_provider.complete.return_value = ProviderResponse(
+        text=json.dumps({
+            "status": "ready",
+            "actions": [
+                {"skill_id": "xlsx", "version": "1.0", "target_agent": "codex", "action": "install"},
+                {"skill_id": "bad", "version": "1.0", "target_agent": "codex", "action": "delete"},
+                {"version": "1.0", "target_agent": "codex", "action": "install"},
+            ],
+        })
+    )
+
+    plan = make_plan("install xlsx")
+    resolved = resolve_plan(plan, has_artifact=True, adapter_owns_target=True, provider=mock_provider)
+
+    assert resolved["status"] == "ready"
+    assert resolved["actions"] == [{"skill_id": "xlsx", "version": "1.0", "target_agent": "codex", "action": "install"}]
 
 
 def test_render_report_wraps_pipeline_result() -> None:
@@ -125,11 +195,51 @@ def test_main_entrypoint_handles_plan_action() -> None:
     assert response["data"]["goal"] == "set up a project skill group"
 
 
+def test_payload_runtime_config_prefers_payload_over_env() -> None:
+    payload = {
+        "action": "plan",
+        "payload": {
+            "goal": "set up a project skill group",
+            "config": {
+                "provider": "openai-compatible",
+                "model": "test-model",
+                "api_key": "payload-secret",
+                "base_url": "https://example.invalid/v1",
+            },
+        },
+    }
+
+    with patch.dict(
+        "os.environ",
+        {
+            "ASM_AI_PROVIDER": "env-provider",
+            "ASM_AI_MODEL": "env-model",
+            "ASM_AI_API_KEY": "env-secret",
+            "ASM_AI_BASE_URL": "https://env.invalid/v1",
+        },
+        clear=False,
+    ):
+        provider_name, model, api_key, base_url = _payload_runtime_config(
+            payload,
+            Namespace(provider="none", model=None),
+        )
+        provider = _create_provider(provider_name, model, api_key=api_key, base_url=base_url)
+
+    assert provider_name == "openai-compatible"
+    assert model == "test-model"
+    assert api_key == "payload-secret"
+    assert base_url == "https://example.invalid/v1"
+    assert provider is not None
+    assert provider.api_key == "payload-secret"
+    assert provider.base_url == "https://example.invalid/v1"
+
+
 def test_handle_accepts_structured_resolve_payload() -> None:
     plan = {
-        "goal": "install a skill",
+        "goal": "install xlsx",
         "steps": [{"action": "recommend", "label": "推荐技能", "detail": "推荐适合的技能"}],
         "revision": 1,
+        "context": {"available_skills": [{"name": "xlsx"}]},
     }
 
     response = handle(
@@ -144,7 +254,7 @@ def test_handle_accepts_structured_resolve_payload() -> None:
     )
 
     assert response["status"] == "ok"
-    assert response["data"]["goal"] == "install a skill"
+    assert response["data"]["goal"] == "install xlsx"
     assert response["data"]["status"] == "ready"
     assert response["data"]["prerequisites"]["has_artifact"] is True
 

@@ -12,8 +12,8 @@ class GeminiProvider(BaseProvider):
 
     def __init__(self, model: str = "gemini-2.0-flash", api_key: str | None = None, base_url: str | None = None, max_tokens: int = 2048):
         self.model = model
-        self.api_key = api_key or os.environ.get("ASM_AI_API_KEY") or os.environ.get("GEMINI_API_KEY", "")
-        self.base_url = (base_url or os.environ.get("ASM_AI_BASE_URL") or os.environ.get("GEMINI_BASE_URL") or "https://generativelanguage.googleapis.com/v1beta").rstrip("/")
+        self.api_key = api_key or os.environ.get("ASM_AI_API_KEY", "")
+        self.base_url = (base_url or os.environ.get("ASM_AI_BASE_URL") or "https://generativelanguage.googleapis.com/v1beta").rstrip("/")
         self.max_tokens = max_tokens
 
     async def complete(self, request: ProviderRequest) -> ProviderResponse:

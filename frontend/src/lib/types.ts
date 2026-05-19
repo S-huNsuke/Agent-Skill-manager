@@ -43,7 +43,7 @@ export interface AgentViewModel {
   id: string;
   name: string;
   mode: string;
-  status: "healthy" | "degraded";
+  status: "healthy" | "degraded" | "not_installed";
   summary: string;
   focus: string;
   installPath: string;
@@ -166,6 +166,7 @@ export interface SkillExplanationViewModel {
   readmeFile: string;
   readmeContent: string;
   files: string[];
+  aiExplanation: string;
 }
 
 export interface ActivityItem {

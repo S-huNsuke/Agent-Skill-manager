@@ -2,24 +2,27 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 import { AssistantPanel } from "./AssistantPanel";
-import type { AISettingsViewModel, AssistantTaskViewModel } from "../../lib/mocks";
+import type { AISettingsViewModel, AssistantTaskViewModel } from "../../lib/types";
 
+const mockSubmitGoal = vi.hoisted(() => vi.fn());
 const mockChatAssistant = vi.hoisted(() => vi.fn());
 const mockSaveAISettings = vi.hoisted(() => vi.fn());
 const mockGetAISettings = vi.hoisted(() => vi.fn());
 const mockGetTaskHistory = vi.hoisted(() => vi.fn());
 const mockDeleteTaskHistoryItem = vi.hoisted(() => vi.fn());
+const mockGetSuggestionTemplates = vi.hoisted(() => vi.fn());
 
 vi.mock("../../lib/api", async () => {
   const actual = await vi.importActual<typeof import("../../lib/api")>("../../lib/api");
   return {
       ...actual,
       waitForApi: vi.fn(async () => ({
-        getSuggestionTemplates: async () => [],
+        getSuggestionTemplates: mockGetSuggestionTemplates,
       getTaskHistory: mockGetTaskHistory,
       deleteTaskHistoryItem: mockDeleteTaskHistoryItem,
       getAISettings: mockGetAISettings,
       saveAISettings: mockSaveAISettings,
+      submitGoal: mockSubmitGoal,
       chatAssistant: mockChatAssistant,
     })),
   };
@@ -41,26 +44,48 @@ describe("AssistantPanel", () => {
   };
 
   beforeEach(() => {
-    if (typeof localStorage.removeItem === "function") {
+    vi.clearAllMocks();
+    try {
       localStorage.removeItem("agent-skills-manager.chatSessions");
+    } catch {
+      // 测试环境中 localStorage 可能不可用
     }
     const defaultSettings: AISettingsViewModel = { provider: "none", model: "", apiKey: "", baseUrl: "" };
     mockGetAISettings.mockResolvedValue(defaultSettings);
     mockGetTaskHistory.mockResolvedValue([]);
+    mockGetSuggestionTemplates.mockResolvedValue([]);
     mockDeleteTaskHistoryItem.mockResolvedValue("ok");
     mockSaveAISettings.mockResolvedValue("ok");
-    mockChatAssistant.mockResolvedValue({ reply: "这是聊天回复", provider: "none", model: "" });
+    mockChatAssistant.mockImplementation(async (message: string) => ({
+      reply: `聊天回复：${message}`,
+      provider: "none",
+      model: "",
+    }));
+    mockSubmitGoal.mockImplementation(async (goal: string) => ({
+      id: "assistant-active",
+      request: goal,
+      status: "planning",
+      nextStep: "等待用户确认",
+      summary: "这是规划摘要",
+      recommendation: "继续执行计划",
+      reason: "",
+      records: [],
+      planJson: "",
+      planSteps: [],
+      resolvedActions: [],
+    }));
   });
 
-  it("replaces the placeholder state with the chat response", async () => {
+  it("creates a planning task when the user chooses the planning action", async () => {
     const user = userEvent.setup();
 
     render(<AssistantPanel task={idleTask} />);
 
     await user.type(screen.getByPlaceholderText("输入消息..."), "安装一组技能");
-    await user.click(screen.getByTitle("发送"));
+    await user.click(screen.getByRole("button", { name: "规划技能方案" }));
 
-    expect(await screen.findByText("这是聊天回复")).toBeInTheDocument();
+    expect(mockSubmitGoal).toHaveBeenCalledWith("安装一组技能");
+    expect(await screen.findByText("这是规划摘要")).toBeInTheDocument();
   });
 
   it("keeps provider configuration collapsed until the user opens it", async () => {
@@ -87,7 +112,7 @@ describe("AssistantPanel", () => {
     expect(await screen.findByText("AI 配置已保存")).toBeInTheDocument();
   });
 
-  it("sends chat messages through the assistant chat API", async () => {
+  it("sends regular messages through the chat API by default", async () => {
     const user = userEvent.setup();
 
     render(<AssistantPanel task={idleTask} />);
@@ -96,8 +121,31 @@ describe("AssistantPanel", () => {
     await user.click(screen.getByTitle("发送"));
 
     expect(mockChatAssistant).toHaveBeenCalledWith("你好", []);
+    expect(mockSubmitGoal).not.toHaveBeenCalled();
     expect(screen.queryByText("正在思考...")).not.toBeInTheDocument();
-    expect(await screen.findByText("这是聊天回复")).toBeInTheDocument();
+    expect(await screen.findByText("聊天回复：你好")).toBeInTheDocument();
+  });
+
+  it("starts planning directly from suggestion templates", async () => {
+    const user = userEvent.setup();
+    mockGetSuggestionTemplates.mockResolvedValue([
+      {
+        id: "tpl-test",
+        category: "测试",
+        title: "添加测试技能",
+        description: "安装测试相关技能",
+        promptTemplate: "为项目添加测试技能",
+        isBuiltin: true,
+      },
+    ]);
+
+    render(<AssistantPanel task={idleTask} />);
+
+    await user.click(await screen.findByText("添加测试技能"));
+
+    expect(mockSubmitGoal).toHaveBeenCalledWith("为项目添加测试技能");
+    expect(mockChatAssistant).not.toHaveBeenCalled();
+    expect(await screen.findByText("这是规划摘要")).toBeInTheDocument();
   });
 
   it("selects and deletes conversations from the history list", async () => {
@@ -108,7 +156,7 @@ describe("AssistantPanel", () => {
     expect(screen.queryByRole("button", { name: "删除历史对话" })).not.toBeInTheDocument();
     await user.type(screen.getByPlaceholderText("输入消息..."), "你好");
     await user.click(screen.getByTitle("发送"));
-    expect(await screen.findByText("这是聊天回复")).toBeInTheDocument();
+    expect(await screen.findByText("聊天回复：你好")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "打开对话：你好" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "新对话" }));
@@ -124,9 +172,8 @@ describe("AssistantPanel", () => {
     await user.click(screen.getByRole("button", { name: "删除对话：你好" }));
 
     expect(screen.queryByText("你好")).not.toBeInTheDocument();
-    expect(screen.queryByText("这是聊天回复")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "打开对话：你好" })).not.toBeInTheDocument();
-    expect(screen.getByText("我是你的 AI 助手")).toBeInTheDocument();
+    expect(screen.getAllByText("第二个问题").length).toBeGreaterThan(0);
   });
 
   it("deletes task history items from the recent tasks list", async () => {

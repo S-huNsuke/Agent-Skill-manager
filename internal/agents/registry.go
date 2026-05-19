@@ -29,12 +29,17 @@ func NewRegistry(adapters ...Adapter) *Registry {
 
 func (r *Registry) DiscoverAll(ctx context.Context) ([]AgentInstall, error) {
 	var allInstalls []AgentInstall
+	var errs []string
 	for _, adapter := range r.adapters {
 		installs, err := adapter.DiscoverAll(ctx)
 		if err != nil {
-			return nil, fmt.Errorf("discover %s: %w", adapter.ID(), err)
+			errs = append(errs, fmt.Sprintf("%s: %s", adapter.ID(), err))
+			continue
 		}
 		allInstalls = append(allInstalls, installs...)
+	}
+	if len(errs) == len(r.adapters) {
+		return nil, fmt.Errorf("all adapters failed: %s", strings.Join(errs, "; "))
 	}
 	return allInstalls, nil
 }
@@ -114,6 +119,10 @@ func NewFilesystemAdapter(config LocalAdapterConfig) Adapter {
 
 func (a *filesystemAdapter) ID() string {
 	return a.config.AgentID
+}
+
+func (a *filesystemAdapter) SkillsRelativePath() string {
+	return a.config.SkillsRelativePath
 }
 
 func (a *filesystemAdapter) Discover(context.Context) (AgentInstall, error) {
@@ -218,7 +227,11 @@ func (a *filesystemAdapter) InstallSkill(_ context.Context, install AgentInstall
 		return fmt.Errorf("copy skill files: %w", err)
 	}
 
-	if err := writeOwnershipMarker(targetDir, mutation.Name, "1.0.0"); err != nil {
+	version := mutation.Version
+	if version == "" {
+		version = "1.0.0"
+	}
+	if err := writeOwnershipMarker(targetDir, mutation.Name, version); err != nil {
 		return fmt.Errorf("write ownership marker: %w", err)
 	}
 
@@ -267,7 +280,19 @@ func (a *filesystemAdapter) UpdateSkill(_ context.Context, install AgentInstall,
 		return fmt.Errorf("copy updated skill files: %w", err)
 	}
 
-	if err := writeOwnershipMarker(targetDir, mutation.Name, "2.0.0"); err != nil {
+	var version string
+	if mutation.Version != "" {
+		version = mutation.Version
+	} else {
+		currentVersion := readInstalledVersion(targetDir)
+		if currentVersion != "" {
+			version = incrementVersion(currentVersion)
+		} else {
+			version = "1.0.0"
+		}
+	}
+
+	if err := writeOwnershipMarker(targetDir, mutation.Name, version); err != nil {
 		return fmt.Errorf("update ownership marker: %w", err)
 	}
 
@@ -328,8 +353,6 @@ func (a *filesystemAdapter) candidateInstallPaths() []installCandidate {
 	}
 
 	appendCandidate(a.config.OverrideInstallPath, 1)
-
-	a.confirmExecutablePresence()
 
 	return candidates
 }
@@ -396,6 +419,13 @@ func (a *filesystemAdapter) inspectCandidate(now time.Time, installPath string) 
 		return install, true
 	}
 
+	if !a.confirmExecutablePresence() {
+		install.Health = HealthInstalledButExecutableMissing
+		install.LastErrorCode = ErrCodeExecutableNotFound
+		install.LastErrorMessage = "agent executable not found"
+		return install, true
+	}
+
 	install.Health = HealthReady
 	return install, true
 }
@@ -404,6 +434,8 @@ func discoveryRank(health HealthStatus) int {
 	switch health {
 	case HealthReady:
 		return 4
+	case HealthInstalledButExecutableMissing:
+		return 3
 	case HealthInstalledButSkillPathEmpty:
 		return 3
 	case HealthInstalledButSkillPathMissing:
@@ -417,17 +449,22 @@ func discoveryRank(health HealthStatus) int {
 	}
 }
 
-func (a *filesystemAdapter) confirmExecutablePresence() {
+/** 检查可执行文件是否存在，返回是否找到至少一个 */
+func (a *filesystemAdapter) confirmExecutablePresence() bool {
+	if len(a.config.ExecutableNames) == 0 {
+		return true
+	}
 	if a.config.LookPath == nil {
-		return
+		return true
 	}
 
 	for _, executable := range a.config.ExecutableNames {
 		found, err := a.config.LookPath(executable)
 		if err == nil && found != "" {
-			return
+			return true
 		}
 	}
+	return false
 }
 
 func visibleSkillEntries(entries []os.DirEntry) []string {
@@ -462,14 +499,19 @@ func isIgnoredSkillEntry(name string) bool {
 
 const markerFileName = ".asm-managed"
 
-/** 递归复制源目录内容到目标目录 */
+/** 递归复制源目录内容到目标目录，保留源文件权限 */
 func copyDir(src, dst string) error {
-	entries, err := os.ReadDir(src)
+	srcInfo, err := os.Stat(src)
 	if err != nil {
 		return err
 	}
 
-	if err := os.MkdirAll(dst, 0o755); err != nil {
+	if err := os.MkdirAll(dst, srcInfo.Mode()); err != nil {
+		return err
+	}
+
+	entries, err := os.ReadDir(src)
+	if err != nil {
 		return err
 	}
 
@@ -486,7 +528,12 @@ func copyDir(src, dst string) error {
 			if err != nil {
 				return err
 			}
-			if err := os.WriteFile(dstPath, data, 0o644); err != nil {
+			entryInfo, statErr := os.Stat(srcPath)
+			perm := os.FileMode(0o644)
+			if statErr == nil {
+				perm = entryInfo.Mode()
+			}
+			if err := os.WriteFile(dstPath, data, perm); err != nil {
 				return err
 			}
 		}
@@ -499,9 +546,9 @@ func copyDir(src, dst string) error {
 func writeOwnershipMarker(skillDir, skillName, version string) error {
 	now := time.Now().UTC()
 	marker := map[string]interface{}{
-		"skill_name":  skillName,
-		"version":     version,
-		"managed_by":  "agent-skills-manager",
+		"skill_name":   skillName,
+		"version":      version,
+		"managed_by":   "agent-skills-manager",
 		"installed_at": now.Format(time.RFC3339),
 	}
 
@@ -511,4 +558,40 @@ func writeOwnershipMarker(skillDir, skillName, version string) error {
 	}
 
 	return os.WriteFile(filepath.Join(skillDir, markerFileName), data, 0o644)
+}
+
+/** 从标记文件中读取已安装技能的版本号 */
+func readInstalledVersion(skillDir string) string {
+	markerPath := filepath.Join(skillDir, markerFileName)
+	data, err := os.ReadFile(markerPath)
+	if err != nil {
+		return ""
+	}
+
+	var marker map[string]interface{}
+	if err := json.Unmarshal(data, &marker); err != nil {
+		return ""
+	}
+
+	version, ok := marker["version"].(string)
+	if !ok {
+		return ""
+	}
+	return version
+}
+
+/** 递增语义版本号的补丁版本（如 "1.0.0" -> "1.0.1"） */
+func incrementVersion(version string) string {
+	parts := strings.Split(version, ".")
+	if len(parts) != 3 {
+		return "1.0.0"
+	}
+
+	patch := 0
+	if _, err := fmt.Sscanf(parts[2], "%d", &patch); err != nil {
+		return "1.0.0"
+	}
+
+	parts[2] = fmt.Sprintf("%d", patch+1)
+	return strings.Join(parts, ".")
 }

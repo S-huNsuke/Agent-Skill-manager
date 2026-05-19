@@ -30,32 +30,26 @@ func (Service) Plan(desired []skillgroups.DesiredSkill, catalog []domain.Catalog
 		Repair:  make([]Action, 0),
 	}
 
-	catalogBySkillID := make(map[string]domain.CatalogSkill, len(catalog))
-	for _, item := range catalog {
-		catalogBySkillID[item.ID] = item
-	}
-
+	resolvedCatalogBySkillID := make(map[string]domain.CatalogSkill, len(desired))
+	resolvedActionSkillIDs := make(map[string]string, len(desired))
 	for _, wanted := range desired {
-		if _, ok := catalogBySkillID[wanted.SkillID]; !ok {
-			plan.BlockReason = fmt.Sprintf("missing catalog entry for skill %q", wanted.SkillID)
+		catalogEntry, resolvedSkillID, err := resolveCatalogSkill(catalog, wanted.SkillID)
+		if err != nil {
+			plan.BlockReason = err.Error()
 			return plan, nil
 		}
-	}
-
-	installedBySkillID := make(map[string]domain.InstalledSkill, len(installed))
-	for _, item := range installed {
-		if _, exists := installedBySkillID[item.SkillID]; !exists {
-			installedBySkillID[item.SkillID] = item
-		}
+		resolvedCatalogBySkillID[wanted.SkillID] = catalogEntry
+		resolvedActionSkillIDs[wanted.SkillID] = resolvedSkillID
 	}
 
 	for _, wanted := range desired {
-		catalogEntry := catalogBySkillID[wanted.SkillID]
+		catalogEntry := resolvedCatalogBySkillID[wanted.SkillID]
+		resolvedSkillID := resolvedActionSkillIDs[wanted.SkillID]
 
-		current, ok := installedBySkillID[wanted.SkillID]
+		current, ok := lookupInstalledSkill(installed, wanted.SkillID, resolvedSkillID)
 		if !ok {
 			plan.Install = append(plan.Install, Action{
-				SkillID: catalogEntry.ID,
+				SkillID: resolvedSkillID,
 				Version: catalogEntry.Version,
 			})
 			continue
@@ -63,7 +57,7 @@ func (Service) Plan(desired []skillgroups.DesiredSkill, catalog []domain.Catalog
 
 		if current.Version != catalogEntry.Version {
 			plan.Update = append(plan.Update, Action{
-				SkillID: catalogEntry.ID,
+				SkillID: resolvedSkillID,
 				Version: catalogEntry.Version,
 			})
 			continue
@@ -71,11 +65,53 @@ func (Service) Plan(desired []skillgroups.DesiredSkill, catalog []domain.Catalog
 
 		if current.InstallState != installStateInstalled || current.ErrorMessage != "" {
 			plan.Repair = append(plan.Repair, Action{
-				SkillID: catalogEntry.ID,
+				SkillID: resolvedSkillID,
 				Version: catalogEntry.Version,
 			})
 		}
 	}
 
 	return plan, nil
+}
+
+func resolveCatalogSkill(catalog []domain.CatalogSkill, ref string) (domain.CatalogSkill, string, error) {
+	for _, item := range catalog {
+		if item.ID == ref {
+			return item, resolvedCatalogSkillID(item), nil
+		}
+	}
+
+	for _, item := range catalog {
+		if item.Name == ref {
+			return item, resolvedCatalogSkillID(item), nil
+		}
+	}
+
+	return domain.CatalogSkill{}, "", fmt.Errorf("missing catalog entry for skill %q", ref)
+}
+
+func resolvedCatalogSkillID(item domain.CatalogSkill) string {
+	if item.Name != "" {
+		return item.Name
+	}
+	return item.ID
+}
+
+func lookupInstalledSkill(installed []domain.InstalledSkill, refs ...string) (domain.InstalledSkill, bool) {
+	seen := make(map[string]struct{}, len(refs))
+	for _, ref := range refs {
+		if ref == "" {
+			continue
+		}
+		if _, ok := seen[ref]; ok {
+			continue
+		}
+		seen[ref] = struct{}{}
+		for _, item := range installed {
+			if item.SkillID == ref || item.ID == ref {
+				return item, true
+			}
+		}
+	}
+	return domain.InstalledSkill{}, false
 }

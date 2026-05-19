@@ -69,7 +69,7 @@ func (a *App) DeleteProject(projectID string) string {
 			return "ok"
 		}
 	}
-	return "error: project not found"
+	return "error: 项目不存在"
 }
 
 /** 为项目绑定代理 */
@@ -103,7 +103,7 @@ func (a *App) BindAgentToProject(projectID string, agentID string) string {
 			return "ok"
 		}
 	}
-	return "error: project not found"
+	return "error: 项目不存在"
 }
 
 /** 为项目绑定技能组 */
@@ -134,7 +134,7 @@ func (a *App) BindSkillGroupToProject(projectID string, groupName string) string
 			return "ok"
 		}
 	}
-	return "error: project not found"
+	return "error: 项目不存在"
 }
 
 /** 刷新项目列表（重新扫描本地目录） */
@@ -242,7 +242,7 @@ func (a *App) DeleteSkillGroup(groupID string) string {
 			return "ok"
 		}
 	}
-	return "error: group not found"
+	return "error: 技能组不存在"
 }
 
 /** 为技能组添加技能 */
@@ -254,7 +254,7 @@ func (a *App) AddSkillToGroup(groupID string, skillName string) string {
 		if a.skillGroups[i].ID == groupID {
 			for _, existing := range a.skillGroups[i].SkillNames {
 				if existing == skillName {
-					return "error: skill already in group"
+					return "error: 技能已在该组中"
 				}
 			}
 			a.skillGroups[i].SkillNames = append(a.skillGroups[i].SkillNames, skillName)
@@ -272,7 +272,7 @@ func (a *App) AddSkillToGroup(groupID string, skillName string) string {
 			return "ok"
 		}
 	}
-	return "error: group not found"
+	return "error: 技能组不存在"
 }
 
 /** 从技能组移除技能 */
@@ -295,10 +295,10 @@ func (a *App) RemoveSkillFromGroup(groupID string, skillName string) string {
 					return "ok"
 				}
 			}
-			return "error: skill not in group"
+			return "error: 技能不在该组中"
 		}
 	}
-	return "error: group not found"
+	return "error: 技能组不存在"
 }
 
 /** 返回任务历史列表 */
@@ -338,10 +338,10 @@ func (a *App) GetTaskHistory(limit int) []TaskHistoryItem {
 /** 删除单条任务历史 */
 func (a *App) DeleteTaskHistoryItem(taskID string) string {
 	if strings.TrimSpace(taskID) == "" {
-		return "error: task id is required"
+		return "error: 任务 ID 不能为空"
 	}
 	if a.taskRepo == nil {
-		return "error: task repository unavailable"
+		return "error: 任务存储不可用"
 	}
 	if err := a.taskRepo.Delete(context.Background(), taskID); err != nil {
 		return fmt.Sprintf("error: %s", err.Error())
@@ -457,7 +457,7 @@ func (a *App) ReconcileProject(projectID string) ReconcilePlanViewModel {
 func (a *App) ExecuteReconcilePlan(projectID string, planJSON string) string {
 	var plan ReconcilePlanViewModel
 	if err := json.Unmarshal([]byte(planJSON), &plan); err != nil {
-		return fmt.Sprintf("error: invalid plan JSON: %s", err)
+		return "error: 协调计划 JSON 格式无效"
 	}
 
 	a.projectsMu.RLock()
@@ -471,12 +471,12 @@ func (a *App) ExecuteReconcilePlan(projectID string, planJSON string) string {
 	a.projectsMu.RUnlock()
 
 	if project == nil {
-		return "error: project not found"
+		return "error: 项目不存在"
 	}
 
 	agentID := project.BoundAgentID
 	if agentID == "" {
-		return "error: project has no bound agent"
+		return "error: 项目未绑定代理"
 	}
 
 	errors := make([]string, 0)

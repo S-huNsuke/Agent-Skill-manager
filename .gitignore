@@ -13,6 +13,7 @@ frontend/tsconfig.tsbuildinfo
 # Dependencies
 node_modules/
 frontend/node_modules/
+.pnpm-store/
 
 # Python
 .venv/
@@ -36,6 +37,7 @@ vendor/
 # IDE
 .idea/
 .vscode/
+.codex/
 *.swp
 *.swo
 *~

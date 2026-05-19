@@ -19,33 +19,58 @@ def _env(name: str, default: str = "") -> str:
     return value
 
 
-def _create_provider(name: str, model: str | None) -> BaseProvider | None:
+def _create_provider(name: str, model: str | None, api_key: str | None = None, base_url: str | None = None) -> BaseProvider | None:
     """根据名称创建 LLM 提供者实例"""
     if name == "openai":
         from .providers.openai_provider import OpenAIProvider
 
-        api_key = _env("ASM_AI_API_KEY") or _env("OPENAI_API_KEY")
-        base_url = _env("ASM_AI_BASE_URL") or _env("OPENAI_BASE_URL")
-        return OpenAIProvider(model=model or "gpt-4o", api_key=api_key, base_url=base_url or None)
+        return OpenAIProvider(
+            model=model or "gpt-4o",
+            api_key=api_key or _env("ASM_AI_API_KEY"),
+            base_url=base_url or _env("ASM_AI_BASE_URL") or None,
+        )
     if name == "anthropic":
         from .providers.anthropic_provider import AnthropicProvider
 
-        api_key = _env("ASM_AI_API_KEY") or _env("ANTHROPIC_API_KEY")
-        base_url = _env("ASM_AI_BASE_URL") or _env("ANTHROPIC_BASE_URL")
-        return AnthropicProvider(model=model or "claude-sonnet-4-20250514", api_key=api_key, base_url=base_url or None)
+        return AnthropicProvider(
+            model=model or "claude-sonnet-4-20250514",
+            api_key=api_key or _env("ASM_AI_API_KEY"),
+            base_url=base_url or _env("ASM_AI_BASE_URL") or None,
+        )
     if name == "gemini":
         from .providers.gemini_provider import GeminiProvider
 
-        api_key = _env("ASM_AI_API_KEY") or _env("GEMINI_API_KEY")
-        base_url = _env("ASM_AI_BASE_URL") or _env("GEMINI_BASE_URL")
-        return GeminiProvider(model=model or "gemini-2.0-flash", api_key=api_key, base_url=base_url or None)
+        return GeminiProvider(
+            model=model or "gemini-2.0-flash",
+            api_key=api_key or _env("ASM_AI_API_KEY"),
+            base_url=base_url or _env("ASM_AI_BASE_URL") or None,
+        )
     if name == "openai-compatible":
         from .providers.openai_provider import OpenAIProvider
 
-        api_key = _env("ASM_AI_API_KEY") or _env("OPENAI_API_KEY")
-        base_url = _env("ASM_AI_BASE_URL") or _env("OPENAI_BASE_URL")
-        return OpenAIProvider(model=model or "gpt-4o", api_key=api_key, base_url=base_url or None)
+        return OpenAIProvider(
+            model=model or "gpt-4o",
+            api_key=api_key or _env("ASM_AI_API_KEY"),
+            base_url=base_url or _env("ASM_AI_BASE_URL") or None,
+        )
     return None
+
+
+def _payload_runtime_config(payload: dict, args: argparse.Namespace) -> tuple[str, str | None, str | None, str | None]:
+    body = payload.get("payload", {})
+    config = body.get("config", {}) if isinstance(body, dict) else {}
+    if not isinstance(config, dict):
+        config = {}
+
+    provider = str(config.get("provider") or args.provider or _env("ASM_AI_PROVIDER") or "none")
+    model_value = config.get("model") or args.model or _env("ASM_AI_MODEL")
+    api_key_value = config.get("api_key") or _env("ASM_AI_API_KEY")
+    base_url_value = config.get("base_url") or _env("ASM_AI_BASE_URL")
+
+    model = str(model_value) if model_value else None
+    api_key = str(api_key_value) if api_key_value else None
+    base_url = str(base_url_value) if base_url_value else None
+    return provider, model, api_key, base_url
 
 
 def handle(payload: dict, provider: BaseProvider | None = None) -> dict:
@@ -80,10 +105,10 @@ def main() -> int:
     parser.add_argument("--model", default=None, help="Model name for the selected provider")
     args = parser.parse_args()
 
-    provider = _create_provider(args.provider, args.model)
-
     try:
         payload = json.load(sys.stdin)
+        provider_name, model, api_key, base_url = _payload_runtime_config(payload, args)
+        provider = _create_provider(provider_name, model, api_key=api_key, base_url=base_url)
         response = handle(payload, provider=provider)
     except Exception as exc:  # pragma: no cover - defensive worker boundary
         response = {"status": "error", "data": {"error": str(exc)}}

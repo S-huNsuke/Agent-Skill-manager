@@ -237,7 +237,7 @@ docker run -d --name agent-skills-manager \
 ```
 agent-skills-manager/
 ├── build/                          # Build assets and output
-│   ├── appicon.png                 # Application icon (1024x1024)
+│   ├── appicon.icns                # macOS application icon
 │   └── bin/                        # Build output
 ├── cmd/
 │   └── agent-skills-manager/       # Application entry point

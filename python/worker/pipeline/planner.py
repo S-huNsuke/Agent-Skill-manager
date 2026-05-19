@@ -40,8 +40,14 @@ _SYSTEM_PROMPT = """你是一个技能管理规划助手。用户会给你一个
 
 def make_plan(goal: str, context: dict | None = None, provider: BaseProvider | None = None) -> dict:
     """根据目标生成执行计划，可选使用 LLM 提供者"""
+    def with_context(plan: dict) -> dict:
+        """在计划中保留解析阶段需要的上下文。"""
+        if context:
+            plan.setdefault("context", context)
+        return plan
+
     if provider is None:
-        return {"goal": goal, "steps": list(_FALLBACK_STEPS), "revision": 1}
+        return with_context({"goal": goal, "steps": list(_FALLBACK_STEPS), "revision": 1})
 
     import asyncio
 
@@ -61,14 +67,14 @@ def make_plan(goal: str, context: dict | None = None, provider: BaseProvider | N
         if skills:
             user_prompt += "\n\n已安装的技能："
             for skill in skills[:10]:  # 只显示前10个
-                user_prompt += f"\n- {skill.get('name')} ({skill.get('agent_id')})"
+                user_prompt += f"\n- {skill.get('name')} ({skill.get('agent')})：{skill.get('summary', '')}"
 
         # 添加可用的商店技能
         available_skills = context.get('available_skills', [])
         if available_skills:
             user_prompt += "\n\n可用的商店技能（部分）："
             for skill in available_skills[:10]:  # 只显示前10个
-                user_prompt += f"\n- {skill.get('name')} by {skill.get('author')}: {skill.get('description', '')[:50]}"
+                user_prompt += f"\n- {skill.get('name')} by {skill.get('author')}: {skill.get('summary', '')[:80]}"
 
     request = ProviderRequest(
         system_prompt=_SYSTEM_PROMPT,
@@ -81,6 +87,6 @@ def make_plan(goal: str, context: dict | None = None, provider: BaseProvider | N
         if "goal" not in plan or "steps" not in plan:
             raise ValueError("missing required fields")
         plan.setdefault("revision", 1)
-        return plan
+        return with_context(plan)
     except Exception:
-        return {"goal": goal, "steps": list(_FALLBACK_STEPS), "revision": 1}
+        return with_context({"goal": goal, "steps": list(_FALLBACK_STEPS), "revision": 1})

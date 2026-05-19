@@ -13,6 +13,13 @@ import (
 	"github.com/caojun/agent-skills-manager/internal/domain"
 )
 
+var sanitizePatterns = []*regexp.Regexp{
+	regexp.MustCompile(`(?is)<\s*(?:think|thinking|reasoning|analysis)\s*>.*?<\s*/\s*(?:think|thinking|reasoning|analysis)\s*>`),
+	regexp.MustCompile(`(?is)^` + "```" + `(?:think|thinking|reasoning|analysis)\s+.*?` + "```" + `\s*`),
+	regexp.MustCompile(`(?is)^\s*(?:思考过程|思考|推理过程|推理|Thinking|Reasoning|Analysis)\s*[:：].*?\n\s*\n`),
+	regexp.MustCompile(`(?is)^\s*(?:最终答案|回答)\s*[:：]\s*`),
+}
+
 func (a *App) GetAssistantTask() AssistantTaskViewModel {
 	a.assistantMu.Lock()
 	defer a.assistantMu.Unlock()
@@ -407,14 +414,8 @@ func (a *App) ChatAssistant(message string, history []AssistantChatMessageViewMo
 
 func sanitizeAssistantReply(text string) string {
 	reply := strings.TrimSpace(text)
-	patterns := []string{
-		`(?is)<\s*(?:think|thinking|reasoning|analysis)\s*>.*?<\s*/\s*(?:think|thinking|reasoning|analysis)\s*>`,
-		"(?is)^```(?:think|thinking|reasoning|analysis)\\s+.*?```\\s*",
-		"(?is)^\\s*(?:思考过程|思考|推理过程|推理|Thinking|Reasoning|Analysis)\\s*[:：].*?\\n\\s*\\n",
-		"(?is)^\\s*(?:最终答案|回答)\\s*[:：]\\s*",
-	}
-	for _, pattern := range patterns {
-		reply = regexp.MustCompile(pattern).ReplaceAllString(reply, "")
+	for _, re := range sanitizePatterns {
+		reply = re.ReplaceAllString(reply, "")
 	}
 	for _, marker := range []string{"最终答案：", "最终答案:", "回答：", "回答:"} {
 		if idx := strings.LastIndex(reply, marker); idx >= 0 {
@@ -574,21 +575,17 @@ func (a *App) AdvanceAssistantTask(taskID string, action string) AssistantTaskVi
 		records = append(records, "开始验证安装结果...")
 
 		if a.registry != nil {
-			installs, err := a.registry.DiscoverAll(context.Background())
-			if err == nil {
-				totalSkills := 0
-				for _, install := range installs {
-					if install.Health == agents.HealthReady {
-						skills, skillErr := a.registry.ListInstalledSkills(context.Background(), install)
-						if skillErr == nil {
-							totalSkills += len(skills)
-						}
+			installs := a.getCachedInstalls()
+			totalSkills := 0
+			for _, install := range installs {
+				if install.Health == agents.HealthReady {
+					skills, skillErr := a.registry.ListInstalledSkills(context.Background(), install)
+					if skillErr == nil {
+						totalSkills += len(skills)
 					}
 				}
-				records = append(records, fmt.Sprintf("验证完成: 当前共 %d 个技能已安装", totalSkills))
-			} else {
-				records = append(records, "验证完成: 无法检查代理状态")
 			}
+			records = append(records, fmt.Sprintf("验证完成: 当前共 %d 个技能已安装", totalSkills))
 		} else {
 			records = append(records, "验证完成: 代理注册表未初始化")
 		}
@@ -669,12 +666,10 @@ func (a *App) findAgentIDForTask(task *AssistantTaskViewModel) string {
 	a.projectsMu.RUnlock()
 
 	if a.registry != nil {
-		installs, err := a.registry.DiscoverAll(context.Background())
-		if err == nil {
-			for _, install := range installs {
-				if install.Health == agents.HealthReady {
-					return install.AgentID
-				}
+		installs := a.getCachedInstalls()
+		for _, install := range installs {
+			if install.Health == agents.HealthReady {
+				return install.AgentID
 			}
 		}
 	}

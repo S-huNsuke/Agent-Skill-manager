@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { DiagnosticItemViewModel, GeneralSettingsViewModel, AutomationSettingsViewModel, AISettingsViewModel, AppInfoViewModel } from "../../lib/mocks";
+import type { DiagnosticItemViewModel, GeneralSettingsViewModel, AutomationSettingsViewModel, AISettingsViewModel, AppInfoViewModel, LogEntryViewModel } from "../../lib/types";
 import { isRunningInWails, waitForApi } from "../../lib/api";
 import { StatusBadge } from "../../components/StatusBadge";
 import { aiProviderPresets, applyPreset, defaultAISettings, getModelOptions, getPresetFromSettings, type AiPreset } from "../ai/aiSettings";
@@ -9,7 +9,7 @@ interface SettingsPageProps {
   onRefresh?: () => void;
 }
 
-type SettingsTab = "general" | "ai" | "automation" | "diagnostics" | "about";
+type SettingsTab = "general" | "ai" | "automation" | "diagnostics" | "logs" | "about";
 
 const toneCopy = { stable: "正常", attention: "待检查", critical: "异常", muted: "已忽略" } as const;
 
@@ -52,6 +52,9 @@ export function SettingsPage({ diagnostics, onRefresh }: SettingsPageProps) {
   const [appInfo, setAppInfo] = useState<AppInfoViewModel | null>(null);
   const [saving, setSaving] = useState(false);
   const [settingsError, setSettingsError] = useState<string | null>(null);
+  const [logs, setLogs] = useState<LogEntryViewModel[]>([]);
+  const [logLevel, setLogLevel] = useState<string>("");
+  const [logsLoading, setLogsLoading] = useState(false);
 
   useEffect(() => {
     setBindingDiag(getWailsBindingDiagnostics());
@@ -110,11 +113,15 @@ export function SettingsPage({ diagnostics, onRefresh }: SettingsPageProps) {
   const handleSaveGeneral = async () => {
     if (!generalSettings) return;
     setSaving(true);
+    setSettingsError(null);
     try {
       const api = await waitForApi();
-      await api.saveGeneralSettings(generalSettings);
-    } catch {
-      // 静默处理
+      const result = await api.saveGeneralSettings(generalSettings);
+      if (result !== "ok") {
+        throw new Error(result);
+      }
+    } catch (err) {
+      setSettingsError(`通用设置保存失败：${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setSaving(false);
     }
@@ -124,11 +131,15 @@ export function SettingsPage({ diagnostics, onRefresh }: SettingsPageProps) {
   const handleSaveAutomation = async () => {
     if (!automationSettings) return;
     setSaving(true);
+    setSettingsError(null);
     try {
       const api = await waitForApi();
-      await api.saveAutomationSettings(automationSettings);
-    } catch {
-      // 静默处理
+      const result = await api.saveAutomationSettings(automationSettings);
+      if (result !== "ok") {
+        throw new Error(result);
+      }
+    } catch (err) {
+      setSettingsError(`自动化设置保存失败：${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setSaving(false);
     }
@@ -137,11 +148,15 @@ export function SettingsPage({ diagnostics, onRefresh }: SettingsPageProps) {
   /** 保存 AI 设置 */
   const handleSaveAI = async () => {
     setSaving(true);
+    setSettingsError(null);
     try {
       const api = await waitForApi();
-      await api.saveAISettings(aiSettings);
-    } catch {
-      // 静默处理
+      const result = await api.saveAISettings(aiSettings);
+      if (result !== "ok") {
+        throw new Error(result);
+      }
+    } catch (err) {
+      setSettingsError(`AI 设置保存失败：${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setSaving(false);
     }
@@ -152,6 +167,7 @@ export function SettingsPage({ diagnostics, onRefresh }: SettingsPageProps) {
     { key: "ai", label: "AI 配置" },
     { key: "automation", label: "自动化" },
     { key: "diagnostics", label: "诊断" },
+    { key: "logs", label: "日志" },
     { key: "about", label: "关于" },
   ];
 
@@ -172,6 +188,11 @@ export function SettingsPage({ diagnostics, onRefresh }: SettingsPageProps) {
           </button>
         ))}
       </div>
+      {settingsError && (
+        <div className="mb-4 rounded-card border border-attention-ink/20 bg-attention-bg/40 px-4 py-3 text-sm text-ink">
+          {settingsError}
+        </div>
+      )}
 
       {/* General Settings */}
       {activeTab === "general" && (
@@ -226,11 +247,6 @@ export function SettingsPage({ diagnostics, onRefresh }: SettingsPageProps) {
             </div>
             <StatusBadge tone={inWails ? "stable" : "attention"} label={inWails ? "Wails 已连接" : "示例模式"} />
           </div>
-          {settingsError && (
-            <div className="mb-4 rounded-card border border-attention-ink/20 bg-attention-bg/40 px-4 py-3 text-sm text-ink">
-              {settingsError}
-            </div>
-          )}
           <div className="flex flex-col gap-4">
             <div>
               <label htmlFor="ai-provider-preset" className="block text-sm font-medium text-ink mb-1">供应商预设</label>
@@ -402,11 +418,114 @@ export function SettingsPage({ diagnostics, onRefresh }: SettingsPageProps) {
             </div>
           </div>
           <div className="mt-4">
-            <button type="button" onClick={() => { setBindingDiag(getWailsBindingDiagnostics()); onRefresh?.(); }} className="bg-accent text-white rounded-pill px-6 py-2.5 font-medium shadow-accent hover:bg-accent-warm transition-colors">
-              刷新诊断数据
-            </button>
+            <div className="flex gap-3">
+              <button type="button" onClick={() => { setBindingDiag(getWailsBindingDiagnostics()); onRefresh?.(); }} className="bg-accent text-white rounded-pill px-6 py-2.5 font-medium shadow-accent hover:bg-accent-warm transition-colors">
+                刷新诊断数据
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const api = await waitForApi();
+                    const json = await api.exportDiagnostics();
+                    const blob = new Blob([json], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `agent-skills-manager-diagnostics-${new Date().toISOString().slice(0, 10)}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                  } catch (err) {
+                    setSettingsError(`诊断报告导出失败：${err instanceof Error ? err.message : String(err)}`);
+                  }
+                }}
+                className="bg-surface-warm text-ink border border-border rounded-pill px-6 py-2.5 font-medium hover:bg-surface-hover transition-colors"
+              >
+                导出诊断报告
+              </button>
+            </div>
           </div>
         </div>
+      )}
+
+      {/* Logs */}
+      {activeTab === "logs" && (
+        <article className="bg-surface rounded-panel shadow-panel p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="font-display text-xl font-semibold text-ink">运行日志</h2>
+              <p className="text-sm text-ink-soft">查看应用最近的运行日志，帮助排查问题。</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <select
+                value={logLevel}
+                onChange={(e) => setLogLevel(e.target.value)}
+                className="bg-surface-warm rounded-card px-3 py-1.5 text-sm text-ink border border-border focus:outline-none focus:ring-1 focus:ring-accent"
+              >
+                <option value="">全部级别</option>
+                <option value="INFO">INFO</option>
+                <option value="WARN">WARN</option>
+                <option value="ERROR">ERROR</option>
+              </select>
+              <button
+                type="button"
+                onClick={async () => {
+                  setLogsLoading(true);
+                  try {
+                    const api = await waitForApi();
+                    const entries = await api.getLogs(logLevel, 100);
+                    setLogs(entries);
+                  } catch {
+                    setLogs([]);
+                  } finally {
+                    setLogsLoading(false);
+                  }
+                }}
+                disabled={logsLoading}
+                className="bg-accent text-white rounded-pill px-4 py-1.5 text-sm font-medium hover:bg-accent-warm transition-colors disabled:opacity-40"
+              >
+                {logsLoading ? "加载中..." : "刷新日志"}
+              </button>
+            </div>
+          </div>
+          {logs.length === 0 ? (
+            <div className="text-center py-12 text-ink-muted">
+              <p className="text-sm">暂无日志记录</p>
+              <p className="text-xs mt-1">点击"刷新日志"加载最近的运行日志</p>
+            </div>
+          ) : (
+            <div className="max-h-[480px] overflow-y-auto rounded-card bg-surface-warm border border-border">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-surface-warm">
+                  <tr className="border-b border-border">
+                    <th className="text-left px-3 py-2 text-ink-muted font-medium w-40">时间</th>
+                    <th className="text-left px-3 py-2 text-ink-muted font-medium w-20">级别</th>
+                    <th className="text-left px-3 py-2 text-ink-muted font-medium">消息</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {logs.map((log, idx) => (
+                    <tr key={idx} className="border-b border-border/50 hover:bg-surface-hover/50">
+                      <td className="px-3 py-1.5 text-ink-muted text-xs font-mono whitespace-nowrap">{log.timestamp}</td>
+                      <td className="px-3 py-1.5">
+                        <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${
+                          log.level === "ERROR" ? "bg-red-100 text-red-700" :
+                          log.level === "WARN" ? "bg-amber-100 text-amber-700" :
+                          "bg-blue-100 text-blue-700"
+                        }`}>
+                          {log.level}
+                        </span>
+                      </td>
+                      <td className="px-3 py-1.5 text-ink font-mono text-xs break-all">{log.message}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </article>
       )}
 
       {/* About */}

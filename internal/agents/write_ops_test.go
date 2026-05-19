@@ -30,6 +30,7 @@ func TestInstallSkillWritesToAgentSkillsPath(t *testing.T) {
 	adapter := codex.NewAdapter(codex.Config{
 		DefaultInstallPaths: []string{},
 		Now:                 func() time.Time { return now },
+		LookPath:            fakeFoundLookPath,
 		OverrideInstallPath: codexHome,
 		SkillsRelativePath:  "skills",
 	})
@@ -93,6 +94,7 @@ func TestInstallSkillRejectsOverwriteOfUnmanagedSkill(t *testing.T) {
 	adapter := codex.NewAdapter(codex.Config{
 		DefaultInstallPaths: []string{},
 		Now:                 func() time.Time { return now },
+		LookPath:            fakeFoundLookPath,
 		OverrideInstallPath: codexHome,
 		SkillsRelativePath:  "skills",
 	})
@@ -126,9 +128,9 @@ func TestUninstallSkillRemovesManagedSkill(t *testing.T) {
 	mustWriteFile(t, filepath.Join(skillDir, "prompt.md"), "hello")
 
 	marker := map[string]interface{}{
-		"skill_name":  "my-skill",
-		"version":     "1.0.0",
-		"managed_by":  "agent-skills-manager",
+		"skill_name":   "my-skill",
+		"version":      "1.0.0",
+		"managed_by":   "agent-skills-manager",
 		"installed_at": now.Format(time.RFC3339),
 	}
 	markerJSON, _ := json.Marshal(marker)
@@ -137,6 +139,7 @@ func TestUninstallSkillRemovesManagedSkill(t *testing.T) {
 	adapter := codex.NewAdapter(codex.Config{
 		DefaultInstallPaths: []string{},
 		Now:                 func() time.Time { return now },
+		LookPath:            fakeFoundLookPath,
 		OverrideInstallPath: codexHome,
 		SkillsRelativePath:  "skills",
 	})
@@ -170,6 +173,7 @@ func TestUninstallSkillRejectsUnmanagedSkill(t *testing.T) {
 	adapter := codex.NewAdapter(codex.Config{
 		DefaultInstallPaths: []string{},
 		Now:                 func() time.Time { return now },
+		LookPath:            fakeFoundLookPath,
 		OverrideInstallPath: codexHome,
 		SkillsRelativePath:  "skills",
 	})
@@ -202,9 +206,9 @@ func TestUpdateSkillReplacesManagedSkillFiles(t *testing.T) {
 	mustWriteFile(t, filepath.Join(skillDir, "prompt.md"), "old content")
 
 	marker := map[string]interface{}{
-		"skill_name":  "my-skill",
-		"version":     "1.0.0",
-		"managed_by":  "agent-skills-manager",
+		"skill_name":   "my-skill",
+		"version":      "1.0.0",
+		"managed_by":   "agent-skills-manager",
 		"installed_at": now.Format(time.RFC3339),
 	}
 	markerJSON, _ := json.Marshal(marker)
@@ -217,6 +221,7 @@ func TestUpdateSkillReplacesManagedSkillFiles(t *testing.T) {
 	adapter := codex.NewAdapter(codex.Config{
 		DefaultInstallPaths: []string{},
 		Now:                 func() time.Time { return now },
+		LookPath:            fakeFoundLookPath,
 		OverrideInstallPath: codexHome,
 		SkillsRelativePath:  "skills",
 	})
@@ -269,9 +274,9 @@ func TestValidateSkillInstallConfirmsValidInstall(t *testing.T) {
 	mustWriteFile(t, filepath.Join(skillDir, "prompt.md"), "hello")
 
 	marker := map[string]interface{}{
-		"skill_name":  "my-skill",
-		"version":     "1.0.0",
-		"managed_by":  "agent-skills-manager",
+		"skill_name":   "my-skill",
+		"version":      "1.0.0",
+		"managed_by":   "agent-skills-manager",
 		"installed_at": now.Format(time.RFC3339),
 	}
 	markerJSON, _ := json.Marshal(marker)
@@ -280,6 +285,7 @@ func TestValidateSkillInstallConfirmsValidInstall(t *testing.T) {
 	adapter := codex.NewAdapter(codex.Config{
 		DefaultInstallPaths: []string{},
 		Now:                 func() time.Time { return now },
+		LookPath:            fakeFoundLookPath,
 		OverrideInstallPath: codexHome,
 		SkillsRelativePath:  "skills",
 	})
@@ -308,6 +314,7 @@ func TestValidateSkillInstallDetectsMissingSkill(t *testing.T) {
 	adapter := codex.NewAdapter(codex.Config{
 		DefaultInstallPaths: []string{},
 		Now:                 func() time.Time { return now },
+		LookPath:            fakeFoundLookPath,
 		OverrideInstallPath: codexHome,
 		SkillsRelativePath:  "skills",
 	})

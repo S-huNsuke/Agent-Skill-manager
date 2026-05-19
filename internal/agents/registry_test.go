@@ -12,6 +12,7 @@ import (
 	"github.com/caojun/agent-skills-manager/internal/agents/codex"
 	"github.com/caojun/agent-skills-manager/internal/agents/geminicli"
 	"github.com/caojun/agent-skills-manager/internal/agents/openclaw"
+	"github.com/caojun/agent-skills-manager/internal/agents/trae"
 )
 
 func TestRegistryDiscoverAllReturnsReadyAndDegradedAgents(t *testing.T) {
@@ -34,24 +35,28 @@ func TestRegistryDiscoverAllReturnsReadyAndDegradedAgents(t *testing.T) {
 		codex.NewAdapter(codex.Config{
 			DefaultInstallPaths: []string{},
 			Now:                 func() time.Time { return now },
+			LookPath:            fakeFoundLookPath,
 			OverrideInstallPath: codexHome,
 			SkillsRelativePath:  "skills",
 		}),
 		claudecode.NewAdapter(claudecode.Config{
 			DefaultInstallPaths: []string{},
 			Now:                 func() time.Time { return now },
+			LookPath:            fakeFoundLookPath,
 			OverrideInstallPath: claudeHome,
 			SkillsRelativePath:  "skills",
 		}),
 		geminicli.NewAdapter(geminicli.Config{
 			DefaultInstallPaths: []string{},
 			Now:                 func() time.Time { return now },
+			LookPath:            fakeFoundLookPath,
 			OverrideInstallPath: geminiHome,
 			SkillsRelativePath:  "skills",
 		}),
 		openclaw.NewAdapter(openclaw.Config{
 			DefaultInstallPaths: []string{},
 			Now:                 func() time.Time { return now },
+			LookPath:            fakeFoundLookPath,
 			OverrideInstallPath: filepath.Join(root, "openclaw"),
 			SkillsRelativePath:  "skills",
 		}),
@@ -93,6 +98,7 @@ func TestRegistryDiscoverPrefersHealthyOverrideOverDegradedDefault(t *testing.T)
 	adapter := codex.NewAdapter(codex.Config{
 		DefaultInstallPaths: []string{defaultHome},
 		Now:                 func() time.Time { return now },
+		LookPath:            fakeFoundLookPath,
 		OverrideInstallPath: overrideHome,
 		SkillsRelativePath:  "skills",
 	})
@@ -122,6 +128,7 @@ func TestRegistryDiscoverPrefersOverrideWhenDefaultAndOverrideAreBothReady(t *te
 	adapter := codex.NewAdapter(codex.Config{
 		DefaultInstallPaths: []string{defaultHome},
 		Now:                 func() time.Time { return now },
+		LookPath:            fakeFoundLookPath,
 		OverrideInstallPath: overrideHome,
 		SkillsRelativePath:  "skills",
 	})
@@ -149,6 +156,7 @@ func TestRegistryDiscoverPrefersOverrideWhenDefaultAndOverrideShareDegradedRank(
 	adapter := codex.NewAdapter(codex.Config{
 		DefaultInstallPaths: []string{defaultHome},
 		Now:                 func() time.Time { return now },
+		LookPath:            fakeFoundLookPath,
 		OverrideInstallPath: overrideHome,
 		SkillsRelativePath:  "skills",
 	})
@@ -188,6 +196,62 @@ func TestRegistryDiscoverDoesNotTreatExecutableDirectoryAsInstallRoot(t *testing
 	assertInstallState(t, install, agents.HealthNotInstalled, "", "", now, agents.ErrCodeInstallNotFound)
 }
 
+func TestRegistryDiscoverDowngradesReadyDirectoryWhenExecutableMissing(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	now := time.Date(2026, time.May, 2, 21, 0, 0, 0, time.UTC)
+
+	codexHome := filepath.Join(root, "codex")
+	mustMkdirAll(t, filepath.Join(codexHome, "skills"))
+	mustWriteFile(t, filepath.Join(codexHome, "skills", "alpha.md"), "alpha")
+
+	adapter := codex.NewAdapter(codex.Config{
+		DefaultInstallPaths: []string{},
+		Now:                 func() time.Time { return now },
+		LookPath: func(string) (string, error) {
+			return "", os.ErrNotExist
+		},
+		OverrideInstallPath: codexHome,
+		SkillsRelativePath:  "skills",
+	})
+
+	install, err := adapter.Discover(context.Background())
+	if err != nil {
+		t.Fatalf("Discover() error = %v", err)
+	}
+
+	assertInstallState(t, install, agents.HealthInstalledButExecutableMissing, codexHome, filepath.Join(codexHome, "skills"), now, agents.ErrCodeExecutableNotFound)
+}
+
+func TestTraeDiscoverDoesNotRequireExecutable(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	now := time.Date(2026, time.May, 2, 21, 0, 0, 0, time.UTC)
+
+	traeHome := filepath.Join(root, "trae")
+	mustMkdirAll(t, filepath.Join(traeHome, "skills"))
+	mustWriteFile(t, filepath.Join(traeHome, "skills", "alpha.md"), "alpha")
+
+	adapter := trae.NewAdapter(trae.Config{
+		DefaultInstallPaths: []string{},
+		Now:                 func() time.Time { return now },
+		LookPath: func(string) (string, error) {
+			return "", os.ErrNotExist
+		},
+		OverrideInstallPath: traeHome,
+		SkillsRelativePath:  "skills",
+	})
+
+	install, err := adapter.Discover(context.Background())
+	if err != nil {
+		t.Fatalf("Discover() error = %v", err)
+	}
+
+	assertInstallState(t, install, agents.HealthReady, traeHome, filepath.Join(traeHome, "skills"), now, "")
+}
+
 func TestRegistryListInstalledSkillsReturnsSkillsForReadyAgent(t *testing.T) {
 	t.Parallel()
 
@@ -202,6 +266,7 @@ func TestRegistryListInstalledSkillsReturnsSkillsForReadyAgent(t *testing.T) {
 	adapter := codex.NewAdapter(codex.Config{
 		DefaultInstallPaths: []string{},
 		Now:                 func() time.Time { return now },
+		LookPath:            fakeFoundLookPath,
 		OverrideInstallPath: codexHome,
 		SkillsRelativePath:  "skills",
 	})
@@ -235,6 +300,7 @@ func TestRegistryDiscoverIgnoresNoiseWhenDeterminingReadyState(t *testing.T) {
 	adapter := codex.NewAdapter(codex.Config{
 		DefaultInstallPaths: []string{},
 		Now:                 func() time.Time { return now },
+		LookPath:            fakeFoundLookPath,
 		OverrideInstallPath: codexHome,
 		SkillsRelativePath:  "skills",
 	})
@@ -260,6 +326,7 @@ func TestRegistryListInstalledSkillsIncludesDirectoryBundles(t *testing.T) {
 	adapter := codex.NewAdapter(codex.Config{
 		DefaultInstallPaths: []string{},
 		Now:                 func() time.Time { return now },
+		LookPath:            fakeFoundLookPath,
 		OverrideInstallPath: codexHome,
 		SkillsRelativePath:  "skills",
 	})
@@ -294,6 +361,7 @@ func TestRegistryListInstalledSkillsFiltersNoiseEntries(t *testing.T) {
 	adapter := codex.NewAdapter(codex.Config{
 		DefaultInstallPaths: []string{},
 		Now:                 func() time.Time { return now },
+		LookPath:            fakeFoundLookPath,
 		OverrideInstallPath: codexHome,
 		SkillsRelativePath:  "skills",
 	})
@@ -311,6 +379,10 @@ func TestRegistryListInstalledSkillsFiltersNoiseEntries(t *testing.T) {
 	if len(skills) != 2 || skills[0] != "bundle-skill" || skills[1] != "single.md" {
 		t.Fatalf("ListInstalledSkills() = %#v, want [bundle-skill single.md]", skills)
 	}
+}
+
+func fakeFoundLookPath(file string) (string, error) {
+	return filepath.Join("/usr/local/bin", file), nil
 }
 
 func assertInstallState(

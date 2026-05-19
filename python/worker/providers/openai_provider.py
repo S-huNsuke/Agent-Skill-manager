@@ -12,8 +12,8 @@ class OpenAIProvider(BaseProvider):
 
     def __init__(self, model: str = "gpt-4o", api_key: str | None = None, base_url: str | None = None, max_tokens: int = 2048):
         self.model = model
-        self.api_key = api_key or os.environ.get("ASM_AI_API_KEY") or os.environ.get("OPENAI_API_KEY", "")
-        self.base_url = (base_url or os.environ.get("ASM_AI_BASE_URL") or os.environ.get("OPENAI_BASE_URL") or "https://api.openai.com/v1").rstrip("/")
+        self.api_key = api_key or os.environ.get("ASM_AI_API_KEY", "")
+        self.base_url = (base_url or os.environ.get("ASM_AI_BASE_URL") or "https://api.openai.com/v1").rstrip("/")
         self.max_tokens = max_tokens
 
     async def complete(self, request: ProviderRequest) -> ProviderResponse:

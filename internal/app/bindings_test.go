@@ -3,10 +3,12 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/caojun/agent-skills-manager/internal/ai"
+	"github.com/caojun/agent-skills-manager/internal/storage/sqlite"
 )
 
 /** 验证 GetDashboard 返回非空仪表盘快照 */
@@ -124,6 +126,30 @@ type fakeAssistantBridge struct {
 	lastReq   ai.WorkerRequest
 }
 
+type fakeSecretStore struct {
+	values map[string]string
+}
+
+func (s *fakeSecretStore) Get(_ context.Context, name string) (string, error) {
+	if s.values == nil {
+		return "", nil
+	}
+	return s.values[name], nil
+}
+
+func (s *fakeSecretStore) Set(_ context.Context, name, value string) error {
+	if s.values == nil {
+		s.values = make(map[string]string)
+	}
+	s.values[name] = value
+	return nil
+}
+
+func (s *fakeSecretStore) Delete(_ context.Context, name string) error {
+	delete(s.values, name)
+	return nil
+}
+
 func (f *fakeAssistantBridge) Run(_ context.Context, req ai.WorkerRequest) (ai.WorkerResponse, error) {
 	f.lastReq = req
 	if resp, ok := f.responses[req.Action]; ok {
@@ -213,7 +239,12 @@ func TestChatAssistantStripsReasoningFromWorkerReply(t *testing.T) {
 
 func TestSaveAISettingsUpdatesBridgeConfig(t *testing.T) {
 	bridge := ai.NewLocalBridge("python3", "none", "")
-	app := &App{Name: defaultAppName, Version: defaultAppVersion, bridge: bridge}
+	app := &App{
+		Name:        defaultAppName,
+		Version:     defaultAppVersion,
+		bridge:      bridge,
+		secretStore: &fakeSecretStore{},
+	}
 
 	result := app.SaveAISettings(AISettingsViewModel{
 		Provider: "openai-compatible",
@@ -236,5 +267,114 @@ func TestSaveAISettingsUpdatesBridgeConfig(t *testing.T) {
 	}
 	if bridge.BaseURL != "https://example.invalid/v1" {
 		t.Fatalf("base url mismatch: got %q want %q", bridge.BaseURL, "https://example.invalid/v1")
+	}
+}
+
+func TestSaveAISettingsDoesNotPersistAPIKeyToDatabase(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "settings.db")
+	db, err := sqlite.Open(dbPath)
+	if err != nil {
+		t.Fatalf("open sqlite db: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = db.Close()
+	})
+	if err := sqlite.Migrate(db); err != nil {
+		t.Fatalf("migrate sqlite db: %v", err)
+	}
+
+	repo := sqlite.NewSettingsRepository(db)
+	store := &fakeSecretStore{}
+	app := &App{
+		Name:         defaultAppName,
+		Version:      defaultAppVersion,
+		settingsRepo: repo,
+		secretStore:  store,
+	}
+
+	result := app.SaveAISettings(AISettingsViewModel{
+		Provider: "openai-compatible",
+		Model:    "gpt-4.1-mini",
+		APIKey:   "secret-key",
+		BaseURL:  "https://example.invalid/v1",
+	})
+	if result != "ok" {
+		t.Fatalf("save result mismatch: got %q want ok", result)
+	}
+
+	raw, err := repo.Get(context.Background(), "ai")
+	if err != nil {
+		t.Fatalf("get ai settings from repo: %v", err)
+	}
+	if strings.Contains(raw, "secret-key") {
+		t.Fatalf("api key leaked into persisted settings: %s", raw)
+	}
+
+	var stored AISettingsViewModel
+	if err := json.Unmarshal([]byte(raw), &stored); err != nil {
+		t.Fatalf("unmarshal stored settings: %v", err)
+	}
+	if stored.APIKey != "" {
+		t.Fatalf("persisted api key mismatch: got %q want empty", stored.APIKey)
+	}
+	if got := store.values[aiAPIKeySecretStoreKey]; got != "secret-key" {
+		t.Fatalf("secret store api key mismatch: got %q want %q", got, "secret-key")
+	}
+}
+
+func TestGetAISettingsMigratesLegacyAPIKeyIntoSecretStore(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "settings.db")
+	db, err := sqlite.Open(dbPath)
+	if err != nil {
+		t.Fatalf("open sqlite db: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = db.Close()
+	})
+	if err := sqlite.Migrate(db); err != nil {
+		t.Fatalf("migrate sqlite db: %v", err)
+	}
+
+	repo := sqlite.NewSettingsRepository(db)
+	legacy := AISettingsViewModel{
+		Provider: "openai-compatible",
+		Model:    "gpt-4.1-mini",
+		APIKey:   "legacy-secret",
+		BaseURL:  "https://example.invalid/v1",
+	}
+	payload, err := json.Marshal(legacy)
+	if err != nil {
+		t.Fatalf("marshal legacy settings: %v", err)
+	}
+	if err := repo.Put(context.Background(), aiSettingsRepoKey, string(payload)); err != nil {
+		t.Fatalf("put legacy settings: %v", err)
+	}
+
+	store := &fakeSecretStore{}
+	app := &App{
+		Name:         defaultAppName,
+		Version:      defaultAppVersion,
+		settingsRepo: repo,
+		secretStore:  store,
+	}
+
+	loaded := app.GetAISettings()
+	if loaded.APIKey != "legacy-secret" {
+		t.Fatalf("loaded api key mismatch: got %q want %q", loaded.APIKey, "legacy-secret")
+	}
+	if got := store.values[aiAPIKeySecretStoreKey]; got != "legacy-secret" {
+		t.Fatalf("secret store api key mismatch: got %q want %q", got, "legacy-secret")
+	}
+
+	raw, err := repo.Get(context.Background(), aiSettingsRepoKey)
+	if err != nil {
+		t.Fatalf("get migrated settings: %v", err)
+	}
+	var stored AISettingsViewModel
+	if err := json.Unmarshal([]byte(raw), &stored); err != nil {
+		t.Fatalf("unmarshal migrated settings: %v", err)
+	}
+	if stored.APIKey != "" {
+		t.Fatalf("legacy api key still persisted in repo: got %q want empty", stored.APIKey)
 	}
 }

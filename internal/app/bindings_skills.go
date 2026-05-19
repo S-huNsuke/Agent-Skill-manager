@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/caojun/agent-skills-manager/internal/agents"
+	"github.com/caojun/agent-skills-manager/internal/ai"
 	wailsRuntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -18,16 +19,13 @@ func (a *App) GetAgents() []AgentViewModel {
 		return []AgentViewModel{}
 	}
 
-	installs, err := a.registry.DiscoverAll(context.Background())
-	if err != nil {
-		return []AgentViewModel{}
-	}
+	installs := a.getCachedInstalls()
 
 	type agentGroup struct {
 		agentID     string
 		displayName string
 		bestHealth  agents.HealthStatus
-		totalSkills int
+		skillNames  map[string]struct{}
 		primaryPath string
 		allPaths    []string
 	}
@@ -42,6 +40,7 @@ func (a *App) GetAgents() []AgentViewModel {
 				agentID:     install.AgentID,
 				displayName: install.DisplayName,
 				bestHealth:  install.Health,
+				skillNames:  make(map[string]struct{}),
 			}
 			groups[install.AgentID] = g
 			order = append(order, install.AgentID)
@@ -61,7 +60,9 @@ func (a *App) GetAgents() []AgentViewModel {
 		if install.Health == agents.HealthReady {
 			skills, skillErr := a.registry.ListInstalledSkills(context.Background(), install)
 			if skillErr == nil {
-				g.totalSkills += len(skills)
+				for _, s := range skills {
+					g.skillNames[s] = struct{}{}
+				}
 			}
 		}
 	}
@@ -94,8 +95,12 @@ func (a *App) GetAgents() []AgentViewModel {
 			status = "degraded"
 			mode = "读取异常"
 			summary = fmt.Sprintf("安装路径: %s（读取失败）", g.primaryPath)
-		case agents.HealthNotInstalled:
+		case agents.HealthInstalledButExecutableMissing:
 			status = "degraded"
+			mode = "缺少可执行文件"
+			summary = fmt.Sprintf("安装路径: %s（未找到代理命令）", g.primaryPath)
+		case agents.HealthNotInstalled:
+			status = "not_installed"
 			mode = "未安装"
 			summary = "未在本机检测到安装"
 		}
@@ -108,7 +113,7 @@ func (a *App) GetAgents() []AgentViewModel {
 			Summary:     summary,
 			Focus:       "",
 			InstallPath: g.primaryPath,
-			Skills:      g.totalSkills,
+			Skills:      len(g.skillNames),
 		})
 	}
 
@@ -121,10 +126,7 @@ func (a *App) GetSkills() []SkillViewModel {
 		return []SkillViewModel{}
 	}
 
-	installs, err := a.registry.DiscoverAll(context.Background())
-	if err != nil {
-		return []SkillViewModel{}
-	}
+	installs := a.getCachedInstalls()
 
 	seen := make(map[string]bool)
 	result := make([]SkillViewModel, 0)
@@ -219,17 +221,14 @@ func (a *App) GetSkills() []SkillViewModel {
 /** 返回商店条目列表，从已同步的远程市场获取 */
 func (a *App) InstallSkill(agentID string, skillName string, sourcePath string) string {
 	if a.registry == nil {
-		return "error: registry not initialized"
+		return "error: 代理注册表未初始化，请重启应用"
 	}
 
 	if sourcePath == "" {
 		sourcePath = a.findSkillCachePath(skillName)
 	}
 
-	installs, err := a.registry.DiscoverAll(context.Background())
-	if err != nil {
-		return fmt.Sprintf("error: %s", err)
-	}
+	installs := a.getCachedInstalls()
 	for _, install := range installs {
 		if (install.AgentID == agentID || install.DisplayName == agentID) && install.Health == agents.HealthReady {
 			mutation := agents.SkillMutation{
@@ -237,12 +236,15 @@ func (a *App) InstallSkill(agentID string, skillName string, sourcePath string) 
 				SourcePath: sourcePath,
 			}
 			if err := a.registry.InstallSkill(context.Background(), install, mutation); err != nil {
-				return fmt.Sprintf("error: %s", err)
+				a.logger.Error("技能安装失败", "agentID", agentID, "skillName", skillName, "error", err)
+				return fmt.Sprintf("error: %s", translateSkillError(err))
 			}
+			a.logger.Info("技能安装成功", "agentID", agentID, "skillName", skillName)
+			a.refreshAgentCache()
 			return "ok"
 		}
 	}
-	return "error: agent not found or not ready"
+	return "error: 未找到可用代理，请确认代理已安装且状态正常"
 }
 
 /** 从商店缓存中查找技能的本地缓存路径 */
@@ -261,32 +263,35 @@ func (a *App) findSkillCachePath(skillName string) string {
 /** 从指定代理卸载技能 */
 func (a *App) UninstallSkill(agentID string, skillName string) string {
 	if a.registry == nil {
-		return "error: registry not initialized"
+		return "error: 代理注册表未初始化，请重启应用"
 	}
-	installs, err := a.registry.DiscoverAll(context.Background())
-	if err != nil {
-		return fmt.Sprintf("error: %s", err)
-	}
+	installs := a.getCachedInstalls()
 	for _, install := range installs {
 		if (install.AgentID == agentID || install.DisplayName == agentID) && install.Health == agents.HealthReady {
 			if err := a.registry.UninstallSkill(context.Background(), install, skillName); err != nil {
-				return fmt.Sprintf("error: %s", err)
+				a.logger.Error("技能卸载失败", "agentID", agentID, "skillName", skillName, "error", err)
+				return fmt.Sprintf("error: %s", translateSkillError(err))
 			}
+			a.logger.Info("技能卸载成功", "agentID", agentID, "skillName", skillName)
+			a.refreshAgentCache()
 			return "ok"
 		}
 	}
-	return "error: agent not found or not ready"
+	return "error: 未找到可用代理，请确认代理已安装且状态正常"
 }
 
 /** 更新指定代理的技能 */
 func (a *App) UpdateSkill(agentID string, skillName string, sourcePath string) string {
 	if a.registry == nil {
-		return "error: registry not initialized"
+		return "error: 代理注册表未初始化，请重启应用"
 	}
-	installs, err := a.registry.DiscoverAll(context.Background())
-	if err != nil {
-		return fmt.Sprintf("error: %s", err)
+	if sourcePath == "" {
+		sourcePath = a.findSkillCachePath(skillName)
 	}
+	if sourcePath == "" {
+		return fmt.Sprintf("error: 未找到技能 %q 的缓存源，请先同步商店", skillName)
+	}
+	installs := a.getCachedInstalls()
 	for _, install := range installs {
 		if (install.AgentID == agentID || install.DisplayName == agentID) && install.Health == agents.HealthReady {
 			mutation := agents.SkillMutation{
@@ -294,22 +299,22 @@ func (a *App) UpdateSkill(agentID string, skillName string, sourcePath string) s
 				SourcePath: sourcePath,
 			}
 			if err := a.registry.UpdateSkill(context.Background(), install, mutation); err != nil {
-				return fmt.Sprintf("error: %s", err)
+				a.logger.Error("技能更新失败", "agentID", agentID, "skillName", skillName, "error", err)
+				return fmt.Sprintf("error: %s", translateSkillError(err))
 			}
+			a.logger.Info("技能更新成功", "agentID", agentID, "skillName", skillName)
+			a.refreshAgentCache()
 			return "ok"
 		}
 	}
-	return "error: agent not found or not ready"
+	return "error: 未找到可用代理，请确认代理已安装且状态正常"
 }
 
 func (a *App) GetAgentSkills(agentID string) []SkillViewModel {
 	if a.registry == nil {
 		return []SkillViewModel{}
 	}
-	installs, err := a.registry.DiscoverAll(context.Background())
-	if err != nil {
-		return []SkillViewModel{}
-	}
+	installs := a.getCachedInstalls()
 	for _, install := range installs {
 		if (install.AgentID == agentID || install.DisplayName == agentID) && install.Health == agents.HealthReady {
 			skillNames, err := a.registry.ListInstalledSkills(context.Background(), install)
@@ -375,28 +380,52 @@ func (a *App) SelectDirectory(title string) string {
 /** 修复代理的技能目录（创建缺失的 skills 目录） */
 func (a *App) RepairAgent(agentID string) string {
 	if a.registry == nil {
-		return "error: registry not initialized"
+		return "error: 代理注册表未初始化，请重启应用"
 	}
-	installs, err := a.registry.DiscoverAll(context.Background())
-	if err != nil {
-		return fmt.Sprintf("error: %s", err)
-	}
+	installs := a.getCachedInstalls()
 	for _, install := range installs {
 		if install.AgentID == agentID || install.DisplayName == agentID {
 			if install.InstallPath == "" {
-				return "error: no install path found"
+				return "error: 未找到安装路径"
 			}
-			skillsPath := filepath.Join(install.InstallPath, "skills")
+			skillsRelativePath := "skills"
+			if adapter, ok := a.registry.AdapterFor(agentID); ok {
+				if rp := adapter.SkillsRelativePath(); rp != "" {
+					skillsRelativePath = rp
+				}
+			}
+			skillsPath := filepath.Join(install.InstallPath, skillsRelativePath)
 			if _, err := os.Stat(skillsPath); os.IsNotExist(err) {
 				if mkdirErr := os.MkdirAll(skillsPath, 0o755); mkdirErr != nil {
-					return fmt.Sprintf("error: failed to create skills directory: %s", mkdirErr)
+					a.logger.Error("创建技能目录失败", "agentID", agentID, "path", skillsPath, "error", mkdirErr)
+					return "error: 创建技能目录失败，请检查磁盘权限"
 				}
+				a.logger.Info("技能目录已创建", "agentID", agentID, "path", skillsPath)
+				a.refreshAgentCache()
 				return "ok"
 			}
-			return "ok: skills directory already exists"
+			return "ok: 技能目录已存在"
 		}
 	}
-	return "error: agent not found"
+	return "error: 未找到该代理"
+}
+
+/** 校验指定代理的技能安装完整性，返回校验结果描述 */
+func (a *App) ValidateSkillInstall(agentID string, skillName string) string {
+	if a.registry == nil {
+		return "error: 代理注册表未初始化，请重启应用"
+	}
+	installs := a.getCachedInstalls()
+	for _, install := range installs {
+		if (install.AgentID == agentID || install.DisplayName == agentID) && install.Health == agents.HealthReady {
+			if err := a.registry.ValidateSkillInstall(context.Background(), install, skillName); err != nil {
+				a.logger.Warn("技能校验失败", "agentID", agentID, "skillName", skillName, "error", err)
+				return fmt.Sprintf("error: %s", translateSkillError(err))
+			}
+			return "ok: 技能校验通过"
+		}
+	}
+	return "error: 未找到可用代理，请确认代理已安装且状态正常"
 }
 
 /** 获取代理的详细信息，聚合所有安装路径 */
@@ -404,10 +433,7 @@ func (a *App) GetAgentDetail(agentID string) AgentDetailViewModel {
 	if a.registry == nil {
 		return AgentDetailViewModel{ID: agentID, Found: false}
 	}
-	installs, err := a.registry.DiscoverAll(context.Background())
-	if err != nil {
-		return AgentDetailViewModel{ID: agentID, Found: false}
-	}
+	installs := a.getCachedInstalls()
 
 	var matched []agents.AgentInstall
 	for _, install := range installs {
@@ -427,7 +453,6 @@ func (a *App) GetAgentDetail(agentID string) AgentDetailViewModel {
 		}
 	}
 
-	totalSkillCount := 0
 	allSkillNames := make(map[string]bool)
 	var allInstallPaths []string
 	var allSkillsPaths []string
@@ -442,7 +467,6 @@ func (a *App) GetAgentDetail(agentID string) AgentDetailViewModel {
 		if install.Health == agents.HealthReady {
 			names, listErr := a.registry.ListInstalledSkills(context.Background(), install)
 			if listErr == nil {
-				totalSkillCount += len(names)
 				for _, name := range names {
 					allSkillNames[name] = true
 				}
@@ -475,7 +499,7 @@ func (a *App) GetAgentDetail(agentID string) AgentDetailViewModel {
 		LastScannedAt:    bestInstall.LastScannedAt.Format("2006-01-02 15:04:05"),
 		LastErrorCode:    bestInstall.LastErrorCode,
 		LastErrorMessage: bestInstall.LastErrorMessage,
-		SkillCount:       totalSkillCount,
+		SkillCount:       len(allSkillNames),
 		SkillNames:       uniqueSkillNames,
 	}
 }
@@ -493,10 +517,7 @@ func (a *App) ExplainSkill(agentID string, skillName string) SkillExplanationVie
 		return result
 	}
 
-	installs, err := a.registry.DiscoverAll(context.Background())
-	if err != nil {
-		return result
-	}
+	installs := a.getCachedInstalls()
 
 	for _, install := range installs {
 		if install.AgentID == agentID || install.DisplayName == agentID {
@@ -549,6 +570,54 @@ func (a *App) ExplainSkill(agentID string, skillName string) SkillExplanationVie
 	return result
 }
 
+/** 调用 AI Bridge 为技能生成通俗解读，带内存缓存避免重复调用 */
+func (a *App) GenerateSkillExplanation(agentID string, skillName string) string {
+	cacheKey := fmt.Sprintf("%s:%s", agentID, skillName)
+
+	a.explainCacheMu.RLock()
+	if cached, ok := a.explainCache[cacheKey]; ok {
+		a.explainCacheMu.RUnlock()
+		return cached
+	}
+	a.explainCacheMu.RUnlock()
+
+	if a.bridge == nil {
+		return ""
+	}
+
+	info := a.ExplainSkill(agentID, skillName)
+	if !info.Found || info.ReadmeContent == "" {
+		return ""
+	}
+
+	content := info.ReadmeContent
+	if len(content) > 2000 {
+		content = content[:2000] + "\n...(已截断)"
+	}
+
+	prompt := fmt.Sprintf(
+		"根据下面的技能文档，用1-3句话解释这个技能能帮用户做什么。语言口语化、具体，避免技术术语。直接说用途，举一个使用场景，不超过80字。\n\n技能名称：%s\n\n文档：\n%s",
+		skillName, content,
+	)
+	ctx := context.Background()
+	resp, err := a.bridge.Run(ctx, ai.WorkerRequest{
+		Action: "chat",
+		Payload: map[string]any{
+			"message": prompt,
+			"history": []any{},
+		},
+	})
+	if err == nil && resp.Status == "ok" {
+		if reply, ok := resp.Data["reply"].(string); ok && reply != "" {
+			a.explainCacheMu.Lock()
+			a.explainCache[cacheKey] = reply
+			a.explainCacheMu.Unlock()
+			return reply
+		}
+	}
+	return ""
+}
+
 /** 读取技能目录下的描述文件 */
 func readSkillDescription(skillDir string) (string, error) {
 	candidates := []string{
@@ -581,8 +650,6 @@ func readSkillDescription(skillDir string) (string, error) {
 	return "", fmt.Errorf("no description found")
 }
 
-/** 返回最近的活动记录 */
-
 /** 返回技能的详细信息 */
 func (a *App) GetSkillDetail(agentID string, skillName string) SkillDetailViewModel {
 	result := SkillDetailViewModel{
@@ -598,10 +665,7 @@ func (a *App) GetSkillDetail(agentID string, skillName string) SkillDetailViewMo
 		return result
 	}
 
-	installs, err := a.registry.DiscoverAll(context.Background())
-	if err != nil {
-		return result
-	}
+	installs := a.getCachedInstalls()
 
 	for _, install := range installs {
 		if (install.AgentID == agentID || install.DisplayName == agentID) && install.Health == agents.HealthReady {
@@ -644,51 +708,55 @@ func (a *App) GetSkillDetail(agentID string, skillName string) SkillDetailViewMo
 	return result
 }
 
-/** 返回商店源列表 */
+/** 批量更新技能，自动查找缓存路径作为更新源 */
 func (a *App) BatchUpdateSkills(agentID string, skillNames string) string {
 	if a.registry == nil {
-		return "error: registry not initialized"
+		return "error: 代理注册表未初始化，请重启应用"
 	}
 	names := strings.Split(skillNames, ",")
-	installs, err := a.registry.DiscoverAll(context.Background())
-	if err != nil {
-		return fmt.Sprintf("error: %s", err)
-	}
+	installs := a.getCachedInstalls()
 	for _, install := range installs {
 		if (install.AgentID == agentID || install.DisplayName == agentID) && install.Health == agents.HealthReady {
+			var errors []string
 			for _, name := range names {
-				mutation := agents.SkillMutation{Name: strings.TrimSpace(name)}
+				trimmed := strings.TrimSpace(name)
+				sourcePath := a.findSkillCachePath(trimmed)
+				mutation := agents.SkillMutation{Name: trimmed, SourcePath: sourcePath}
 				if err := a.registry.UpdateSkill(context.Background(), install, mutation); err != nil {
-					return fmt.Sprintf("error updating %s: %s", name, err)
+					errors = append(errors, fmt.Sprintf("%s: %s", trimmed, translateSkillError(err)))
 				}
 			}
+			if len(errors) > 0 {
+				a.logger.Error("批量更新技能部分失败", "agentID", agentID, "failedCount", len(errors))
+				return fmt.Sprintf("error: 部分技能更新失败: %s", strings.Join(errors, "; "))
+			}
+			a.logger.Info("批量更新技能成功", "agentID", agentID, "count", len(names))
+			a.refreshAgentCache()
 			return "ok"
 		}
 	}
-	return "error: agent not found or not ready"
+	return "error: 未找到可用代理，请确认代理已安装且状态正常"
 }
 
 /** 批量卸载技能 */
 func (a *App) BatchUninstallSkills(agentID string, skillNames string) string {
 	if a.registry == nil {
-		return "error: registry not initialized"
+		return "error: 代理注册表未初始化，请重启应用"
 	}
 	names := strings.Split(skillNames, ",")
-	installs, err := a.registry.DiscoverAll(context.Background())
-	if err != nil {
-		return fmt.Sprintf("error: %s", err)
-	}
+	installs := a.getCachedInstalls()
 	for _, install := range installs {
 		if (install.AgentID == agentID || install.DisplayName == agentID) && install.Health == agents.HealthReady {
 			for _, name := range names {
 				if err := a.registry.UninstallSkill(context.Background(), install, strings.TrimSpace(name)); err != nil {
-					return fmt.Sprintf("error uninstalling %s: %s", name, err)
+					a.logger.Error("批量卸载技能失败", "agentID", agentID, "skillName", name, "error", err)
+					return fmt.Sprintf("error: 卸载 %s 失败: %s", name, translateSkillError(err))
 				}
 			}
+			a.logger.Info("批量卸载技能成功", "agentID", agentID, "count", len(names))
+			a.refreshAgentCache()
 			return "ok"
 		}
 	}
-	return "error: agent not found or not ready"
+	return "error: 未找到可用代理，请确认代理已安装且状态正常"
 }
-
-/** StatusTone 类型别名，用于诊断信息 */

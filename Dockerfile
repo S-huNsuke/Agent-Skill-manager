@@ -1,4 +1,6 @@
-FROM golang:1.23-bookworm AS builder
+# 此 Dockerfile 仅用于开发环境和 CI 构建，不用于生产部署。
+# 生产环境请使用官方发布渠道获取预编译二进制文件。
+FROM golang:1.26-bookworm AS builder
 
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -39,7 +41,7 @@ WORKDIR /app
 
 COPY --from=builder /app/build/bin/agent-skills-manager /app/agent-skills-manager
 
-COPY --from=builder /app/build/appicon.png /app/build/appicon.png
+COPY --from=builder /app/build/appicon.icns /app/build/appicon.icns
 
 RUN mkdir -p /app/data
 

@@ -15,8 +15,12 @@ import (
 	"github.com/caojun/agent-skills-manager/internal/agents/claudecode"
 	"github.com/caojun/agent-skills-manager/internal/agents/codex"
 	"github.com/caojun/agent-skills-manager/internal/agents/geminicli"
+	"github.com/caojun/agent-skills-manager/internal/agents/hermes"
 	"github.com/caojun/agent-skills-manager/internal/agents/openclaw"
+	"github.com/caojun/agent-skills-manager/internal/agents/trae"
 	"github.com/caojun/agent-skills-manager/internal/ai"
+	"github.com/caojun/agent-skills-manager/internal/platform/logging"
+	"github.com/caojun/agent-skills-manager/internal/platform/secrets"
 	"github.com/caojun/agent-skills-manager/internal/storage/sqlite"
 )
 
@@ -40,6 +44,7 @@ type App struct {
 	Version   string
 	Bootstrap BootstrapConfig
 	logger    *slog.Logger
+	logBuffer *logging.LogBuffer
 	startedAt time.Time
 	ctx       context.Context
 	registry  AgentRegistry
@@ -52,6 +57,7 @@ type App struct {
 	settingsRepo     *sqlite.SettingsRepository
 	taskRepo         *sqlite.TaskRepository
 	bridge           ai.Bridge
+	secretStore      secrets.Store
 
 	catalogMu      sync.RWMutex
 	catalogSources []CatalogSourceViewModel
@@ -63,6 +69,12 @@ type App struct {
 
 	assistantMu sync.Mutex
 	activeTask  *AssistantTaskViewModel
+
+	agentsMu       sync.RWMutex
+	cachedInstalls []agents.AgentInstall
+
+	explainCacheMu sync.RWMutex
+	explainCache   map[string]string
 
 	scheduler *Scheduler
 }
@@ -89,6 +101,8 @@ func New(repoRoot string, log *slog.Logger) (*App, error) {
 		claudecode.NewAdapter(claudecode.Config{}),
 		geminicli.NewAdapter(geminicli.Config{}),
 		openclaw.NewAdapter(openclaw.Config{}),
+		hermes.NewAdapter(hermes.Config{}),
+		trae.NewAdapter(trae.Config{}),
 	)
 
 	db, err := initDatabase()
@@ -99,13 +113,24 @@ func New(repoRoot string, log *slog.Logger) (*App, error) {
 		db = nil
 	}
 
+	logBuffer := logging.NewLogBuffer()
+	appLogger := log
+	if appLogger == nil {
+		appLogger = logging.NewWithBuffer(logBuffer)
+	} else {
+		appLogger = logging.WrapWithBuffer(appLogger, logBuffer)
+	}
+
 	app := &App{
-		Name:      defaultAppName,
-		Version:   defaultAppVersion,
-		Bootstrap: bootstrap,
-		logger:    log,
-		registry:  registry,
-		db:        db,
+		Name:         defaultAppName,
+		Version:      defaultAppVersion,
+		Bootstrap:    bootstrap,
+		logger:       appLogger,
+		logBuffer:    logBuffer,
+		registry:     registry,
+		db:           db,
+		secretStore:  secrets.NewKeychainStore("com.wails.agent-skills-manager.ai"),
+		explainCache: make(map[string]string),
 	}
 
 	if db != nil {
@@ -126,8 +151,8 @@ func New(repoRoot string, log *slog.Logger) (*App, error) {
 
 	// 创建 AI Bridge，设置正确的工作目录
 	bridge := ai.NewLocalBridge("python3", "none", "")
-	// 设置 Python worker 的工作目录为 python，这样可以使用 `-m worker.main`
-	workerDir := filepath.Join(bootstrap.RepoRoot, "python")
+	// 优先使用仓库中的 Python Worker；发行包中则回退到 bundle 里的 Resources/python。
+	workerDir := resolvePythonWorkerDir(bootstrap.RepoRoot)
 	bridge.WorkerDir = workerDir
 	aiSettings := app.GetAISettings()
 	bridge.UpdateConfig(aiSettings.Provider, aiSettings.Model, aiSettings.APIKey, aiSettings.BaseURL)
@@ -157,6 +182,29 @@ func initDatabase() (*sql.DB, error) {
 	return db, nil
 }
 
+/** 解析 Python Worker 目录，优先仓库路径，随后尝试应用 bundle 的 Resources 目录 */
+func resolvePythonWorkerDir(repoRoot string) string {
+	candidates := make([]string, 0, 3)
+	if repoRoot != "" {
+		candidates = append(candidates, filepath.Join(repoRoot, "python"))
+	}
+
+	if exe, err := os.Executable(); err == nil {
+		exeDir := filepath.Dir(exe)
+		candidates = append(candidates, filepath.Clean(filepath.Join(exeDir, "..", "Resources", "python")))
+		candidates = append(candidates, filepath.Join(exeDir, "python"))
+	}
+
+	for _, candidate := range candidates {
+		info, err := os.Stat(candidate)
+		if err == nil && info.IsDir() {
+			return candidate
+		}
+	}
+
+	return ""
+}
+
 /** 确保数据目录存在 */
 func ensureDataDir() (string, error) {
 	home, err := os.UserHomeDir()
@@ -180,7 +228,9 @@ func (a *App) loadFromDatabase() {
 	if err != nil || len(sources) == 0 {
 		a.catalogSources = defaultCatalogSources()
 		for _, src := range a.catalogSources {
-			_ = a.catalogSrcRepo.Put(ctx, catalogSourceVMToDomain(src))
+			if putErr := a.catalogSrcRepo.Put(ctx, catalogSourceVMToDomain(src)); putErr != nil && a.logger != nil {
+				a.logger.Error("failed to persist catalog source", slog.String("id", src.ID), slog.Any("error", putErr))
+			}
 		}
 	} else {
 		a.catalogSources = make([]CatalogSourceViewModel, 0, len(sources))
@@ -208,7 +258,9 @@ func (a *App) loadFromDatabase() {
 	} else {
 		a.projects = scanLocalProjects()
 		for _, p := range a.projects {
-			_ = a.projectsRepo.Put(ctx, projectVMToDomain(p))
+			if putErr := a.projectsRepo.Put(ctx, projectVMToDomain(p)); putErr != nil && a.logger != nil {
+				a.logger.Error("failed to persist project", slog.String("id", p.ID), slog.Any("error", putErr))
+			}
 		}
 	}
 
@@ -287,6 +339,22 @@ func scanLocalProjects() []ProjectViewModel {
 		filepath.Join(home, "Developer"),
 		filepath.Join(home, "Code"),
 		filepath.Join(home, "workspace"),
+		filepath.Join(home, "项目"),
+		filepath.Join(home, "代码"),
+		filepath.Join(home, "开发"),
+	}
+
+	if extraDirs := os.Getenv("ASM_PROJECT_DIRS"); extraDirs != "" {
+		for _, dir := range strings.Split(extraDirs, ":") {
+			trimmed := strings.TrimSpace(dir)
+			if trimmed == "" {
+				continue
+			}
+			if !filepath.IsAbs(trimmed) {
+				trimmed = filepath.Join(home, trimmed)
+			}
+			scanDirs = append(scanDirs, trimmed)
+		}
 	}
 
 	result := make([]ProjectViewModel, 0)
@@ -337,6 +405,7 @@ func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 	a.startedAt = time.Now().UTC()
 
+	a.refreshAgentCache()
 	a.scheduler = NewScheduler(a)
 	autoSettings := a.GetAutomationSettings()
 	a.scheduler.ApplySettings(autoSettings)
@@ -373,4 +442,28 @@ func (a *App) GetAppInfo() AppInfo {
 		UsesEmbeddedAssets: a.Bootstrap.UsesEmbeddedAssets,
 		StartedAtRFC3339:   started,
 	}
+}
+
+/** 刷新代理安装缓存，执行磁盘扫描并更新内存缓存 */
+func (a *App) refreshAgentCache() {
+	if a.registry == nil {
+		return
+	}
+	installs, err := a.registry.DiscoverAll(context.Background())
+	if err != nil && a.logger != nil {
+		a.logger.Warn("refresh agent cache failed", slog.Any("error", err))
+		return
+	}
+	a.agentsMu.Lock()
+	a.cachedInstalls = installs
+	a.agentsMu.Unlock()
+}
+
+/** 返回缓存的代理安装列表，避免重复磁盘扫描 */
+func (a *App) getCachedInstalls() []agents.AgentInstall {
+	a.agentsMu.RLock()
+	defer a.agentsMu.RUnlock()
+	result := make([]agents.AgentInstall, len(a.cachedInstalls))
+	copy(result, a.cachedInstalls)
+	return result
 }

@@ -8,7 +8,7 @@ import { SettingsPage } from "../features/settings/SettingsPage";
 import { SkillsPage } from "../features/skills/SkillsPage";
 import { StorePage } from "../features/store/StorePage";
 import { waitForApi } from "../lib/api";
-import type { AppSnapshot } from "../lib/mocks";
+import type { AppSnapshot } from "../lib/types";
 
 interface AppRoutesProps {
   snapshot: AppSnapshot;
@@ -50,7 +50,7 @@ async function handleSkillAction(action: string, agentID: string, skillName?: st
         result = await api.updateSkill(agentID, skillName ?? "", "");
         break;
       case "repair":
-        result = "ok";
+        result = await api.repairAgent(agentID);
         break;
       default:
         result = "unknown action";
@@ -87,7 +87,7 @@ export function AppRoutes({ snapshot, onRefresh }: AppRoutesProps) {
   const [assistantOpen, setAssistantOpen] = useState(true);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-canvas">
       {/* 左侧导航栏 */}
       <aside
         className={`fixed left-0 top-0 h-screen bg-surface-warm rounded-r-panel shadow-panel p-6 flex flex-col gap-6 overflow-y-auto overflow-x-hidden transition-all duration-300 ease-in-out z-50 ${collapsed ? "w-16 px-2 py-6" : "w-72"}`}
@@ -149,7 +149,7 @@ export function AppRoutes({ snapshot, onRefresh }: AppRoutesProps) {
       </aside>
 
       {/* 中间内容区域 */}
-      <main className={`flex-1 overflow-y-auto p-8 min-h-screen transition-all duration-300 ease-in-out ${collapsed ? "ml-16" : "ml-72"} ${assistantOpen ? "mr-80" : "mr-0"}`}>
+      <main className={`flex-1 overflow-y-auto p-8 min-h-screen bg-canvas transition-all duration-300 ease-in-out ${collapsed ? "ml-16" : "ml-72"} ${assistantOpen ? "mr-80" : "mr-0"}`}>
         <Routes>
           <Route path="/" element={<HomePage dashboard={snapshot.dashboard} onRefresh={onRefresh} onOpenAssistant={() => setAssistantOpen(true)} />} />
           <Route

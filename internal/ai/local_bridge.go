@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 )
 
@@ -42,9 +43,20 @@ func NewLocalBridge(pythonPath string, provider string, model string) *LocalBrid
 
 /** 执行 Worker 请求，通过 stdin/stdout 与 Python 进程通信 */
 func (b *LocalBridge) Run(ctx context.Context, req WorkerRequest) (WorkerResponse, error) {
+	body := make(map[string]any, len(req.Payload)+1)
+	for key, value := range req.Payload {
+		body[key] = value
+	}
+	body["config"] = map[string]any{
+		"provider": b.Provider,
+		"model":    b.Model,
+		"api_key":  b.APIKey,
+		"base_url": b.BaseURL,
+	}
+
 	payload := map[string]any{
 		"action":  req.Action,
-		"payload": req.Payload,
+		"payload": body,
 	}
 
 	payloadBytes, err := json.Marshal(payload)
@@ -65,25 +77,7 @@ func (b *LocalBridge) Run(ctx context.Context, req WorkerRequest) (WorkerRespons
 
 	cmd := exec.CommandContext(ctx, b.PythonPath, args...)
 	cmd.Stdin = bytes.NewReader(payloadBytes)
-	env := append([]string{}, os.Environ()...)
-	if b.Provider != "" {
-		env = append(env, "ASM_AI_PROVIDER="+b.Provider)
-	}
-	if b.Model != "" {
-		env = append(env, "ASM_AI_MODEL="+b.Model)
-	}
-	if b.APIKey != "" {
-		env = append(env,
-			"ASM_AI_API_KEY="+b.APIKey,
-			"OPENAI_API_KEY="+b.APIKey,
-			"ANTHROPIC_API_KEY="+b.APIKey,
-			"GEMINI_API_KEY="+b.APIKey,
-		)
-	}
-	if b.BaseURL != "" {
-		env = append(env, "ASM_AI_BASE_URL="+b.BaseURL)
-	}
-	cmd.Env = env
+	cmd.Env = filterSensitiveEnv(os.Environ())
 
 	// 设置工作目录为 python，这样模块导入 worker.main 才能正常工作
 	if b.WorkerDir != "" {
@@ -139,4 +133,27 @@ func (b *LocalBridge) UpdateConfig(provider string, model string, apiKey string,
 	b.Model = model
 	b.APIKey = apiKey
 	b.BaseURL = baseURL
+}
+
+func filterSensitiveEnv(env []string) []string {
+	result := make([]string, 0, len(env))
+	for _, entry := range env {
+		name, _, ok := strings.Cut(entry, "=")
+		if !ok {
+			continue
+		}
+		upper := strings.ToUpper(name)
+		switch {
+		case strings.HasPrefix(upper, "ASM_AI_"):
+			continue
+		case strings.HasSuffix(upper, "_API_KEY"):
+			continue
+		case strings.HasSuffix(upper, "_TOKEN"):
+			continue
+		case strings.HasSuffix(upper, "_SECRET"):
+			continue
+		}
+		result = append(result, entry)
+	}
+	return result
 }
